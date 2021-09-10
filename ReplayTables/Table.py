@@ -7,10 +7,10 @@ from ReplayTables.RandDict import RandDict
 class _ColumnDefReq(TypedDict):
     name: str
     shape: npt._ShapeLike
-    dtype: npt.DTypeLike
 
 class ColumnDef(_ColumnDefReq, total=False):
     pad: float
+    dtype: npt.DTypeLike
 
 def asTuple(shape: npt._ShapeLike) -> Tuple[int, ...]:
     if isinstance(shape, tuple):
@@ -65,13 +65,13 @@ class Table:
             # it's okay to use totally empty arrays and not waste time
             # cleaning memory. We will do bound checks and avoid
             # reaching into uninitialized memory
-            column = np.empty(shape, dtype=col_def['dtype'])
+            column = np.empty(shape, dtype=col_def.get('dtype'))
             self.columns[col_def['name']] = column
 
             # figure out what value to use to pad arrays
             if 'pad' in col_def:
                 self.pads.append(col_def['pad'])
-            elif np.issubdtype(col_def['dtype'], np.integer):
+            elif np.issubdtype(col_def.get('dtype'), np.integer):
                 self.pads.append(0)
             else:
                 self.pads.append(np.nan)
