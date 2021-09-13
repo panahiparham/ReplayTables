@@ -10,6 +10,7 @@ class _ColumnDefReq(TypedDict):
 
 class ColumnDef(_ColumnDefReq, total=False):
     pad: float
+    pad_multiple: int
     dtype: npt.DTypeLike
 
 def asTuple(shape: npt._ShapeLike) -> Tuple[int, ...]:
@@ -52,6 +53,11 @@ class Table:
         # depends on datatype
         self.pads: List[float] = []
 
+        # the padding size will always be a multiple of this value
+        # useful when the padded data has unknown size and is being shipped
+        # off to jax (or other XLA compilers) and we don't want kernel recompilations
+        self._multiples: List[int] = []
+
         # build these at the end in an easily overrideable function
         self._buildColumns()
 
@@ -67,6 +73,11 @@ class Table:
             # reaching into uninitialized memory
             column = np.empty(shape, dtype=col_def.get('dtype'))
             self.columns[col_def['name']] = column
+
+            if 'pad_multiple' in col_def:
+                self._multiples.append(col_def['pad_multiple'])
+            else:
+                self._multiples.append(1)
 
             # figure out what value to use to pad arrays
             if 'pad' in col_def:
@@ -103,7 +114,7 @@ class Table:
         if not pad:
             return tuple((col[seq] for col in self._iterCols()))
         else:
-            return tuple((padded(col[seq], pad, pad_val) for col, pad_val in zip(self._iterCols(), self.pads)))
+            return tuple((padded(col[seq], pad, mult, pad_val) for col, mult, pad_val in zip(self._iterCols(), self._multiples, self.pads)))
 
     def getAll(self):
         return tuple((np.roll(col, -self._idx, axis=0) for col in self._iterCols()))
@@ -182,18 +193,20 @@ class View:
         self.clearOld()
         return self._seq2TensorTuple(self._refs.values())
 
+    def numSequencesThisRound(self):
+        # this happens if we never see a termination
+        if self._last_seq_length == -1:
+            return min(self._idx, self.size)
+
+        return min(self._last_seq_length, self.size)
+
     def getLastComplete(self, offset: int = 0):
         # clear out memory only when it is twice as full as necessary
         # save some compute since we are hardly using any memory
         if len(self._refs) > self._table.max_size * 2:
             self.clearOld()
 
-        last = self._last_seq_length
-
-        # this happens if we never see a termination
-        if self._last_seq_length == -1:
-            last = min(self._idx, self.size)
-
+        last = self.numSequencesThisRound()
         seq = self._refs[self._idx - last + offset]
         return self._seq2TensorTuple([seq])
 
@@ -217,7 +230,8 @@ def rotatedSequence(lo: int, hi: int, mod: int) -> np.ndarray:
     return seq % mod
 
 @njit(cache=True)
-def padded(arr: np.ndarray, size: int, value: float = np.nan):
-    out = np.ones((size, ) + arr.shape[1:], dtype=arr.dtype) * value
+def padded(arr: np.ndarray, size: int, mult: int, value: float = np.nan):
+    s = int(np.ceil(size / mult) * mult)
+    out = np.ones((s, ) + arr.shape[1:], dtype=arr.dtype) * value
     out[:arr.shape[0]] = arr
     return out
