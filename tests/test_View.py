@@ -148,3 +148,31 @@ class TestView(unittest.TestCase):
             [16, 17, 18, 19, 0],
             [19, 0, 0, 0, 0],
         ]))
+
+    def test_getLastComplete(self):
+        table = Table(7, seed=0, columns=[
+            { 'name': 'A', 'shape': 3 },
+            { 'name': 'B', 'shape': 1, 'dtype': bool },
+            { 'name': 'C', 'shape': tuple(), 'dtype': 'int32' },
+        ])
+
+        # will record sequences of size 3 and 5
+        view3 = View(table, 3)
+        view5 = View(table, 5)
+
+        for i in range(20):
+            table.addTuple((np.arange(3) * i, i % 3 == 0, i))
+
+            # each sequence is of length 4
+            if i % 4 == 3:
+                table.endTrajectory()
+
+        # this should be the last *complete* trajectory
+        A, B, C = view3.getLastComplete()
+        self.assertTrue(np.allclose(C, [17, 18, 19]))
+
+        A, B, C = view5.getLastComplete()
+        self.assertTrue(np.allclose(C, [16, 17, 18, 19, 0]))
+
+        A, B, C = view5.getLastComplete(offset=1)
+        self.assertTrue(np.allclose(C, [17, 18, 19, 0, 0]))

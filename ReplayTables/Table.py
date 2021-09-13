@@ -112,19 +112,36 @@ class Table:
         idxs = self._rng.permutation(self._samples)[:size]
         return tuple((col[idxs] for col in self._iterCols()))
 
+    def __len__(self):
+        return self._samples
+
 class View:
     def __init__(self, table: Table, size: int):
+        # sequences whose starting index is older than this are invalid
+        # we will clear these lazily when able
         self.max_age = table.max_size
         self.size = size
 
+        # add a communication link between this view and its parent table
+        # so that states are synchronized
         self._table = table
         self._table.addSubscriber(self)
 
+        # a special dictionary which stores keys and values in hash tables
+        # to allow O(1) random sampling (instead of O(n))
         self._refs: RandDict[int, Tuple[int, int]] = RandDict()
+
+        # monotonically increasing index for accessing
+        # self._refs
         self._idx = 0
 
         # track the current sequence of indices
+        # reset whenever the trajectory ends
         self._seq_idx = 0
+
+        # keep track of the last sequence length from this view
+        # that way we can back-track to find the last element
+        self._last_seq_length = -1
 
     def _onAdd(self, idx: int):
         self._refs[self._idx] = (idx, idx)
@@ -138,6 +155,7 @@ class View:
             self._refs[i] = (self._refs[i][0], idx + 1)
 
     def _onEnd(self):
+        self._last_seq_length = min(self._seq_idx, self.size)
         self._seq_idx = 0
 
     def _seq2TensorTuple(self, seqs: Iterable[Tuple[int, int]]):
@@ -163,6 +181,21 @@ class View:
     def getAll(self):
         self.clearOld()
         return self._seq2TensorTuple(self._refs.values())
+
+    def getLastComplete(self, offset: int = 0):
+        # clear out memory only when it is twice as full as necessary
+        # save some compute since we are hardly using any memory
+        if len(self._refs) > self._table.max_size * 2:
+            self.clearOld()
+
+        last = self._last_seq_length
+
+        # this happens if we never see a termination
+        if self._last_seq_length == -1:
+            last = min(self._idx, self.size)
+
+        seq = self._refs[self._idx - last + offset]
+        return self._seq2TensorTuple([seq])
 
     def clearOld(self):
         def to_del():
