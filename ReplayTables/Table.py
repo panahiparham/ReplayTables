@@ -6,14 +6,14 @@ from ReplayTables.RandDict import RandDict
 
 class _ColumnDefReq(TypedDict):
     name: str
-    shape: npt._ShapeLike
+    shape: npt._shape._ShapeLike
 
 class ColumnDef(_ColumnDefReq, total=False):
     pad: float
     pad_multiple: int
     dtype: npt.DTypeLike
 
-def asTuple(shape: npt._ShapeLike) -> Tuple[int, ...]:
+def asTuple(shape: npt._shape._ShapeLike) -> Tuple[int, ...]:
     if isinstance(shape, tuple):
         return shape
 
