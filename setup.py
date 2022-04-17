@@ -14,7 +14,7 @@ setup(
     description='A simple replay buffer implementation in python for sampling n-step trajectories',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=[
         'numpy>=1.21.0',
         'numba>=0.55.0',
