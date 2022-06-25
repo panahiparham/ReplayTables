@@ -1,24 +1,26 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Dict, Iterable, List, Sequence, Tuple, TypedDict
+from typing import Dict, Iterable, List, Sequence, Tuple, TypedDict, Union, SupportsIndex, cast
 from ReplayTables.RandDict import RandDict
 from ReplayTables._utils.jit import try2jit
 
+ShapeLike = Union[SupportsIndex, Sequence[SupportsIndex]]
+
 class _ColumnDefReq(TypedDict):
     name: str
-    shape: npt._shape._ShapeLike
+    shape: ShapeLike
 
 class ColumnDef(_ColumnDefReq, total=False):
     pad: float
     pad_multiple: int
     dtype: npt.DTypeLike
 
-def asTuple(shape: npt._shape._ShapeLike) -> Tuple[int, ...]:
+def asTuple(shape: ShapeLike) -> Tuple[int, ...]:
     if isinstance(shape, tuple):
         return shape
 
     if isinstance(shape, list):
-        return tuple(shape)
+        return cast(Tuple[int, ...], tuple(shape))
 
     if isinstance(shape, int):
         return (shape, )
