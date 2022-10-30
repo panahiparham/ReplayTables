@@ -117,3 +117,18 @@ class TestLagBuffer(unittest.TestCase):
             terminal=True,
             sp=5,
         ))
+
+    def test_flush(self):
+        buffer = LagBuffer(lag=1)
+
+        buffer.add(Experience(
+            s=0,
+            a=0,
+            r=0,
+            gamma=0,
+            terminal=True,
+        ))
+
+        self.assertEqual(len(buffer._buffer), 1)
+        buffer.flush()
+        self.assertEqual(len(buffer._buffer), 0)

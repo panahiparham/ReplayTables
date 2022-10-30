@@ -41,39 +41,45 @@ T = TypeVar('T', bound=Experience)
 class LagBuffer(Generic[T]):
     def __init__(self, lag: int):
         self._lag = lag
-        self._buffer: Deque[T] = deque(maxlen=lag+1)
+        self._buffer: Deque[T] = deque(maxlen=lag + 1)
 
     def add(self, experience: T):
         self._buffer.append(experience)
 
+        out = []
         if len(self._buffer) <= self._lag:
-            return
+            return out
 
         f = self._buffer[0]
         r, g = _accumulate_return(self._buffer, 0)
-        yield LaggedExperience(
+        out.append(LaggedExperience(
             s=f.s,
             a=f.a,
             r=r,
             gamma=g,
             terminal=experience.terminal,
             sp=experience.s,
-        )
+        ))
 
         if not experience.terminal:
-            return
+            return out
 
         for i in range(1, self._lag):
             f = self._buffer[i]
             r, g = _accumulate_return(self._buffer, i)
-            yield LaggedExperience(
+            out.append(LaggedExperience(
                 s=f.s,
                 a=f.a,
                 r=r,
                 gamma=g,
                 terminal=experience.terminal,
                 sp=experience.s,
-            )
+            ))
+
+        return out
+
+    def flush(self):
+        self._buffer.clear()
 
 
 def _accumulate_return(b: Deque[T], start: int):
