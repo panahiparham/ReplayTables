@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Deque, Generic, NamedTuple, Optional, Protocol, TypeVar
+from typing import Any, Deque, Generic, List, NamedTuple, Optional, Protocol, TypeVar
 from collections import deque
 
 
@@ -46,7 +46,7 @@ class LagBuffer(Generic[T]):
     def add(self, experience: T):
         self._buffer.append(experience)
 
-        out = []
+        out: List[LaggedExperience] = []
         if len(self._buffer) <= self._lag:
             return out
 
