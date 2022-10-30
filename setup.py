@@ -9,7 +9,7 @@ setup(
     author="Andy Patterson",
     author_email="andnpatterson@gmail.com",
     packages=find_packages(exclude=["tests*"]),
-    version="0.1.1",
+    version="1.0.0",
     license="MIT",
     description="A simple replay buffer implementation in python for sampling n-step trajectories",
     long_description=long_description,
