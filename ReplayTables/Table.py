@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from typing import Dict, Iterable, List, Sequence, Tuple, TypedDict, Union, SupportsIndex, cast
-from ReplayTables.RandDict import RandDict
+from ReplayTables._utils.RandDict import RandDict
 from ReplayTables._utils.jit import try2jit
 
 ShapeLike = Union[SupportsIndex, Sequence[SupportsIndex]]
