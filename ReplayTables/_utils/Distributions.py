@@ -25,7 +25,10 @@ class UniformDistribution(Distribution):
         self._size = size
 
     def sample(self, rng: np.random.RandomState, n: int):
-        return rng.random_integers(0, self._size, size=n)
+        if self._size == 1:
+            return np.zeros(n)
+
+        return rng.random_integers(0, self._size - 1, size=n)
 
     def probs(self, idxs: npt.ArrayLike):
         return np.full_like(idxs, fill_value=(1 / self._size), dtype=np.float_)

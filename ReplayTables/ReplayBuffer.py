@@ -25,8 +25,8 @@ class ReplayBuffer(Generic[T]):
         idx = self._t % self._max_size
         self._t += 1
 
-        self._update_dist(idx, transition)
         self._storage[idx] = transition
+        self._update_dist(idx, transition)
         return idx
 
     def _sample_idxs(self, n: int):

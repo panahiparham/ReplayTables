@@ -2,7 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Optional, Type
 from ReplayTables.ReplayBuffer import ReplayBuffer, T
-from ReplayTables._utils.Distributions import MixinUniformDistribution, MixtureDistribution, PrioritizedDistribution, SubDistribution
+from ReplayTables._utils.Distributions import MixinUniformDistribution, MixtureDistribution, PrioritizedDistribution, SubDistribution, UniformDistribution
 
 @dataclass
 class PERConfig:
@@ -11,11 +11,12 @@ class PERConfig:
     priority_exponent: float = 0.5
     max_decay: float = 1.
 
-class PrioritizedReplay(ReplayBuffer):
+class PrioritizedReplay(ReplayBuffer[T]):
     def __init__(self, max_size: int, structure: Type[T], rng: np.random.RandomState, config: Optional[PERConfig] = None):
         super().__init__(max_size, structure, rng)
 
         self._c = config or PERConfig()
+        self._target = UniformDistribution(max_size)
 
         p = 1 - self._c.uniform_probability
         self._idx_dist = MixtureDistribution(max_size, dists=[
@@ -39,6 +40,9 @@ class PrioritizedReplay(ReplayBuffer):
         priority = np.array([priority])
         self._idx_dist.dists[1].update(idxs, priority)
         self._idx_dist.dists[0].update(idxs, priority)
+
+    def _isr_weights(self, idxs: np.ndarray):
+        return self._idx_dist.isr(self._target, idxs)
 
     def update_priorities(self, idxs: np.ndarray, priorities: np.ndarray):
         priorities = priorities ** self._c.priority_exponent
