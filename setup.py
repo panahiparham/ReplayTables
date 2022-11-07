@@ -9,13 +9,13 @@ setup(
     author="Andy Patterson",
     author_email="andnpatterson@gmail.com",
     packages=find_packages(exclude=["tests*"]),
-    version="1.1.0",
+    version="1.2.0",
     license="MIT",
     description="A simple replay buffer implementation in python for sampling n-step trajectories",
     long_description=long_description,
     long_description_content_type="text/markdown",
     python_requires=">=3.8",
-    install_requires=["numba>=0.52.0", "numpy>=1.21.0"],
+    install_requires=["numba>=0.52.0", "numpy>=1.21.0", "scipy>=0.16"],
     extras_require={
         "dev": [
             "mypy",
@@ -25,6 +25,8 @@ setup(
             "pipenv-setup[black]",
             "build",
             "twine",
+            "matplotlib",
+            "vistir==0.6.1",
         ],
     },
 )
