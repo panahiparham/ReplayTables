@@ -27,7 +27,7 @@ class TestSumTree(unittest.TestCase):
         tree = SumTree(213, dims=2)
         rng = np.random.RandomState(1)
         for _ in range(50):
-            v = rng.random_integers(0, 1000, size=(2, 213))
+            v = rng.randint(0, 1000, size=(2, 213))
             truth = v.sum(axis=1)
 
             idxs = rng.permutation(213)

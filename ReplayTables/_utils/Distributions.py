@@ -28,7 +28,7 @@ class UniformDistribution(Distribution):
         if self._size == 1:
             return np.zeros(n)
 
-        return rng.random_integers(0, self._size - 1, size=n)
+        return rng.randint(0, self._size, size=n)
 
     def probs(self, idxs: npt.ArrayLike):
         return np.full_like(idxs, fill_value=(1 / self._size), dtype=np.float_)

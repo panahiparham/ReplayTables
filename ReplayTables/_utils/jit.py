@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, Protocol, cast
+import numpy.typing as npt
 
 _has_warned = False
 T = TypeVar('T', bound=Callable[..., Any])
@@ -16,7 +17,12 @@ def try2jit(f: T) -> T:
 
         return f
 
-def try2vectorize(f: T) -> T:
+
+class Vectorized(Protocol):
+    def __call__(self, *args: npt.ArrayLike) -> npt.ArrayLike:
+        ...
+
+def try2vectorize(f: Any) -> Vectorized:
     try:
         from numba import vectorize
         return vectorize(f, cache=True)
@@ -35,4 +41,4 @@ def try2vectorize(f: T) -> T:
 
             return out
 
-        return _inner
+        return cast(Any, _inner)

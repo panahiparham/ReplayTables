@@ -23,7 +23,7 @@ def _update(tree: List[np.ndarray], dim: int, idxs: np.ndarray, values: np.ndarr
             sub_idx = int(sub_idx // 2)
 
 @try2vectorize
-def _bound(x: np.ndarray, ma: int):
+def _bound(x: int, ma: int):
     return min(x, ma)
 
 @try2jit
@@ -85,20 +85,20 @@ class SumTree:
         return self._tree[-1][:, 0]
 
     def total(self, w: W = None) -> float:
-        w = self._get_w(w)
-        return w.dot(self._tree[-1])[0]
+        w_ = self._get_w(w)
+        return w_.dot(self._tree[-1])[0]
 
     def effective_weights(self):
         t = self.all_totals()
         return _safe_invert(t)
 
     def sample(self, rng: np.random.RandomState, n: int, w: W = None):
-        w = self._get_w(w)
-        t = self.total(w)
+        w_ = self._get_w(w)
+        t = self.total(w_)
         assert t > 0, "Cannot sample when the tree is empty or contains negative values"
 
-        rs = rng.uniform(0, self.total(w), size=n)
-        return _query(self._tree, self._size, w, rs)
+        rs = rng.uniform(0, t, size=n)
+        return _query(self._tree, self._size, w_, rs)
 
     def _get_w(self, w: W = None):
         if w is None:
@@ -108,7 +108,7 @@ class SumTree:
 
 
 @try2vectorize
-def _safe_invert(a: np.ndarray):
+def _safe_invert(a: float):
     if a == 0:
         return 0
 
