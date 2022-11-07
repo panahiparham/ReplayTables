@@ -1,21 +1,13 @@
 import numpy as np
-from ReplayTables.Table import Table, View
+import matplotlib.pyplot as plt
+from ReplayTables._utils.SumTree import SumTree
 
-table = Table(6, [
-    { 'name': 'obs', 'shape': tuple(), 'dtype': 'float64' },
-])
+rng = np.random.RandomState(2)
 
-view3 = View(table, 3)
-view2 = View(table, 2)
+t = SumTree(1000)
+t.update(0, list(range(950)), np.linspace(-5, 5, num=950) ** 2)
+x = t.sample(rng, 500000)
 
-for i in range(15):
-    x = i
-    table.addTuple((x, ))
-
-    if i % 5 == 4:
-        table.endTrajectory()
-
-    s = view3.getAll()
-    print('---------------------')
-    print(i)
-    print(s)
+counts = np.unique(x, return_counts=True)
+plt.bar(*counts, width=1)
+plt.show()
