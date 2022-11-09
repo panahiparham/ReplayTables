@@ -107,9 +107,10 @@ class SumTree:
         return w
 
 
-@try2vectorize
-def _safe_invert(a: float):
-    if a == 0:
-        return 0
+@try2jit
+def _safe_invert(arr: np.ndarray):
+    out = np.empty_like(arr)
+    for i in range(len(arr)):
+        out[i] = 0 if arr[i] == 0 else 1 / arr[i]
 
-    return 1 / a
+    return out

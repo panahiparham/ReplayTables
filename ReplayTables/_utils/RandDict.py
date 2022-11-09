@@ -5,7 +5,7 @@ Key = Union[int, str]
 T = TypeVar('T')
 K = TypeVar('K', bound=Key)
 class RandDict(MutableMapping[K, T], Generic[K, T]):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         self._idx2key: Dict[int, K] = {}
