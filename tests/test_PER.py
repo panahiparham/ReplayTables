@@ -1,4 +1,5 @@
 import unittest
+import pickle
 import numpy as np
 from typing import NamedTuple
 
@@ -47,3 +48,20 @@ class TestPER(unittest.TestCase):
         unique = np.unique(samples.b)
         unique.sort()
         self.assertTrue(np.all(unique == np.array([2, 3, 4, 5, 6])))
+
+    def test_pickeable(self):
+        rng = np.random.RandomState(0)
+        buffer = PrioritizedReplay(5, Data, rng)
+
+        for i in range(5):
+            buffer.add(Data(i, 2 * i))
+
+        buffer.update_priorities(np.arange(5), np.arange(5) + 1)
+
+        byt = pickle.dumps(buffer)
+        buffer2 = pickle.loads(byt)
+
+        s, _, _ = buffer.sample(20)
+        s2, _, _ = buffer2.sample(20)
+
+        self.assertTrue(np.all(s.a == s2.a) and np.all(s.b == s2.b))

@@ -106,6 +106,20 @@ class SumTree:
 
         return w
 
+    def __getstate__(self):
+        return {
+            'size': self._size,
+            'dims': self._dims,
+            'total_size': self._total_size,
+            'memory': list(self._tree)
+        }
+
+    def __setstate__(self, state):
+        self._size = state['size']
+        self._dims = state['dims']
+        self._total_size = state['total_size']
+        self._tree = NList(state['memory'])
+
 
 @try2jit
 def _safe_invert(arr: np.ndarray):

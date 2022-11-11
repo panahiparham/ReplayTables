@@ -1,4 +1,5 @@
 import unittest
+import pickle
 import numpy as np
 
 from ReplayTables._utils.SumTree import SumTree
@@ -63,3 +64,15 @@ class TestSumTree(unittest.TestCase):
 
         for i in range(1, 10):
             self.assertAlmostEqual(c[i] / c[i - 1], 2, places=1)
+
+    def test_pickleable(self):
+        tree = SumTree(123, dims=2)
+        tree.update(0, np.arange(123), np.arange(123))
+        tree.update(1, np.arange(123), np.sin(np.arange(123)))
+
+        byt = pickle.dumps(tree)
+        tree2 = pickle.loads(byt)
+
+        self.assertTrue(np.all(
+            tree.all_totals() == tree2.all_totals()
+        ))

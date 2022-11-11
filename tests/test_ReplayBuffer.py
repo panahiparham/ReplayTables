@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import pickle
 from typing import NamedTuple
 
 from ReplayTables.ReplayBuffer import ReplayBuffer
@@ -47,3 +48,18 @@ class TestReplayBuffer(unittest.TestCase):
         unique = np.unique(samples.b)
         unique.sort()
         self.assertTrue(np.all(unique == np.array([2, 3, 4, 5, 6])))
+
+    def test_pickleable(self):
+        rng = np.random.RandomState(0)
+        buffer = ReplayBuffer(5, Data, rng)
+
+        for i in range(8):
+            buffer.add(Data(a=i, b=i))
+
+        byt = pickle.dumps(buffer)
+        buffer2 = pickle.loads(byt)
+
+        s, _, _ = buffer.sample(3)
+        s2, _, _ = buffer2.sample(3)
+
+        self.assertTrue(np.all(s.a == s2.a) and np.all(s.b == s2.b))
