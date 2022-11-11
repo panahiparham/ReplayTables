@@ -2,7 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Any, Optional, Type
 from ReplayTables.ReplayBuffer import ReplayBufferInterface, T
-from ReplayTables._utils.Distributions import MixinUniformDistribution, MixtureDistribution, PrioritizedDistribution, SubDistribution, UniformDistribution
+from ReplayTables.Distributions import MixinUniformDistribution, MixtureDistribution, PrioritizedDistribution, SubDistribution, UniformDistribution
 
 @dataclass
 class PERConfig:
@@ -19,9 +19,12 @@ class PrioritizedReplay(ReplayBufferInterface[T]):
         self._target = UniformDistribution(max_size)
 
         p = 1 - self._c.uniform_probability
+
+        self._uniform = MixinUniformDistribution()
+        self._p_dist = PrioritizedDistribution()
         self._idx_dist = MixtureDistribution(max_size, dists=[
-            SubDistribution(d=PrioritizedDistribution, p=p),
-            SubDistribution(d=MixinUniformDistribution, p=self._c.uniform_probability),
+            SubDistribution(d=self._p_dist, p=p),
+            SubDistribution(d=self._uniform, p=self._c.uniform_probability),
         ])
 
         self._max_priority = 1e-16
@@ -34,7 +37,8 @@ class PrioritizedReplay(ReplayBufferInterface[T]):
         if self._c.new_priority_mode == 'max':
             priority = self._max_priority
         elif self._c.new_priority_mode == 'mean':
-            priority = self._idx_dist._tree.dim_total(0) / self.size()
+            total_priority = self._idx_dist.tree.dim_total(self._p_dist.dim)
+            priority = total_priority / self.size()
             if priority == 0:
                 priority = 1e-16
         else:
@@ -42,15 +46,15 @@ class PrioritizedReplay(ReplayBufferInterface[T]):
 
         idxs = np.array([idx])
         priorities = np.array([priority])
-        self._idx_dist.dists[1].update(idxs, priorities)
-        self._idx_dist.dists[0].update(idxs, priorities)
+        self._p_dist.update(idxs, priorities)
+        self._uniform.update(idxs)
 
     def _isr_weights(self, idxs: np.ndarray):
         return self._idx_dist.isr(self._target, idxs)
 
     def update_priorities(self, idxs: np.ndarray, priorities: np.ndarray):
         priorities = priorities ** self._c.priority_exponent
-        self._idx_dist.dists[0].update(idxs, priorities)
+        self._p_dist.update(idxs, priorities)
 
         self._max_priority = max(
             self._c.max_decay * self._max_priority,

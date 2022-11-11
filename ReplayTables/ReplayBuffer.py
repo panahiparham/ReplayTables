@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Dict, Generic, NamedTuple, Tuple, TypeVar, Type, cast
 import numpy as np
-from ReplayTables._utils.Distributions import UniformDistribution
+from ReplayTables.Distributions import UniformDistribution
 
 T = TypeVar('T', bound=NamedTuple)
 

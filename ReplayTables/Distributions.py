@@ -1,7 +1,7 @@
 from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
-from typing import Any, Optional, NamedTuple, Sequence, Type
+from typing import Any, Optional, NamedTuple, Sequence
 from ReplayTables._utils.SumTree import SumTree
 
 class Distribution:
@@ -35,47 +35,69 @@ class UniformDistribution(Distribution):
 
 
 class PrioritizedDistribution(Distribution):
-    def __init__(self, tree: SumTree, dim: int, config: Optional[Any] = None):
-        self._tree = tree
-        self._dim = dim
+    def __init__(self, config: Optional[Any] = None, size: Optional[int] = None):
+        self._size = size
+        self._tree: Optional[SumTree] = None
+        self._dim: Optional[int] = None
 
-        self._weights = np.zeros(tree.dims)
-        self._weights[dim] = 1
+        self._weights: Optional[np.ndarray] = None
         self._config = config
+
+    @property
+    def tree(self):
+        assert self._tree is not None
+        return self._tree
+
+    @property
+    def dim(self):
+        assert self._dim is not None
+        return self._dim
+
+    @property
+    def weights(self):
+        assert self._weights is not None
+        return self._weights
+
+    def init(self, memory: Optional[SumTree] = None, dim: Optional[int] = None):
+        if memory is None:
+            assert self._size is not None
+            memory = SumTree(self._size, 1)
+            dim = 0
+
+        assert dim is not None
+        self._tree = memory
+        self._dim = dim
+        self._weights = np.zeros(memory.size)
+        self._weights[self._dim] = 1
 
     def probs(self, idxs: npt.ArrayLike):
         idxs = np.asarray(idxs)
 
-        t = self._tree.dim_total(self._dim)
+        t = self.tree.dim_total(self.dim)
         if t == 0:
             return 0
 
-        v = self._tree.get_values(self._dim, idxs)
+        v = self.tree.get_values(self.dim, idxs)
         return v / t
 
     def sample(self, rng: np.random.RandomState, n: int):
-        return self._tree.sample(rng, n, self._weights)
-
-    @property
-    def dim(self):
-        return self._dim
+        return self.tree.sample(rng, n, self.weights)
 
     def update(self, idxs: np.ndarray, values: np.ndarray):
-        self._tree.update(self.dim, idxs, values)
+        self.tree.update(self.dim, idxs, values)
 
 
 class MixinUniformDistribution(PrioritizedDistribution):
-    def __init__(self, tree: SumTree, dim: int, config: Optional[Any] = None):
-        super().__init__(tree, dim, config)
+    def __init__(self, config: Optional[Any] = None, size: Optional[int] = None):
+        super().__init__(config, size)
 
     def update(self, idxs: np.ndarray, *args, **kwargs):
-        self._tree.update(self.dim, idxs, np.ones(len(idxs)))
+        self.tree.update(self.dim, idxs, np.ones(len(idxs)))
 
 
 class SubDistribution(NamedTuple):
-    d: Type[PrioritizedDistribution]
+    d: PrioritizedDistribution
     p: float
-    config: Optional[Type[Any]] = None
     isr: bool = True
 
 
@@ -86,11 +108,18 @@ class MixtureDistribution(Distribution):
         self._dims = len(dists)
         self._tree = SumTree(size, self._dims)
 
-        self.dists = [sub.d(self._tree, i, sub.config) for i, sub in enumerate(dists)]
+        self.dists = [sub.d for sub in dists]
         self._weights = np.array([sub.p for sub in dists])
         self._mask = np.array([sub.isr for sub in dists], dtype=bool)
 
         self._fast_isr = np.all(self._mask)
+
+        for i, d in enumerate(self.dists):
+            d.init(self._tree, i)
+
+    @property
+    def tree(self):
+        return self._tree
 
     def _filter_defunct(self):
         # if a distribution ends up with 0 total, it is defunct and cannot be sampled
