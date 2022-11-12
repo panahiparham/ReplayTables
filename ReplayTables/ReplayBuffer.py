@@ -18,12 +18,12 @@ class ReplayBufferInterface(Generic[T]):
     def size(self) -> int:
         return len(self._storage)
 
-    def add(self, transition: T):
+    def add(self, transition: T, /, **kwargs: Any):
         idx = self._t % self._max_size
         self._t += 1
 
         self._storage[idx] = transition
-        self._update_dist(idx, transition=transition)
+        self._update_dist(idx, transition=transition, **kwargs)
         return idx
 
     def sample(self, n: int) -> Tuple[T, np.ndarray, np.ndarray]:
