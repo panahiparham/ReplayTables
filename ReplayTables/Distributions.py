@@ -75,7 +75,7 @@ class PrioritizedDistribution(Distribution):
 
         t = self.tree.dim_total(self.dim)
         if t == 0:
-            return 0
+            return np.zeros(len(idxs))
 
         v = self.tree.get_values(self.dim, idxs)
         return v / t
