@@ -69,9 +69,17 @@ class TestSumTree(unittest.TestCase):
         tree = SumTree(123, dims=2)
         tree.update(0, np.arange(123), np.arange(123))
         tree.update(1, np.arange(123), np.sin(np.arange(123)))
+        tree._read()
 
         byt = pickle.dumps(tree)
         tree2 = pickle.loads(byt)
+
+        self.assertTrue(np.all(
+            tree.all_totals() == tree2.all_totals()
+        ))
+
+        tree.update(0, [2], [22])
+        tree2.update(0, [2], [22])
 
         self.assertTrue(np.all(
             tree.all_totals() == tree2.all_totals()
