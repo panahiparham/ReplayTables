@@ -23,6 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         pdm sync -d
+        pdm sync
 
     - name: Test
       env:
