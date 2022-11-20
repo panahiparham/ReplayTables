@@ -106,7 +106,7 @@ class SubDistribution(NamedTuple):
 
 
 class MixtureDistribution(Distribution):
-    def __init__(self, size: int, dists: Sequence[SubDistribution]):
+    def __init__(self, size: int, dists: Sequence[SubDistribution], isr_remainder: Optional[Distribution] = None):
         super().__init__()
 
         self._dims = len(dists)
@@ -117,6 +117,7 @@ class MixtureDistribution(Distribution):
         self._mask = np.array([sub.isr for sub in dists], dtype=bool)
 
         self._fast_isr = np.all(self._mask)
+        self._isr_remainder = isr_remainder
 
         for i, d in enumerate(self.dists):
             d.init(self._tree, i)
@@ -162,7 +163,11 @@ class MixtureDistribution(Distribution):
 
         w = w * self._mask
         missing = 1 - w.sum()
-        rest = np.full_like(tops, fill_value=(1 / self._tree.size))
+
+        if self._isr_remainder is not None:
+            rest = self._isr_remainder.probs(idxs)
+        else:
+            rest = np.full_like(tops, fill_value=(1 / self._tree.size))
 
         bottoms = w.dot(subs) + missing * rest
         return tops / bottoms
