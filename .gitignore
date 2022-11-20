@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 .mypy_cache
 .token
+.pdm.toml
+.venv
 
 env/
 dist/

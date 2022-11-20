@@ -3,4 +3,43 @@
 name = "cz_conventional_commits"
 version = "2.1.1"
 tag_format = "$version"
-version_files = ["setup.py"]
+version_files = ["pyproject.toml"]
+
+[tool.pdm]
+[[tool.pdm.source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "mypy",
+    "flake8",
+    "commitizen",
+    "pre-commit",
+    "matplotlib",
+    "twine",
+]
+
+[tool.mypy]
+mypy_path = "typings"
+
+[project]
+name = "ReplayTables-andnp"
+version = "2.1.1"
+description = "A simple replay buffer implementation in python for sampling n-step trajectories"
+authors = [
+    {name = "Andy Patterson", email = "andnpatterson@gmail.com"},
+]
+dependencies = [
+    "numba>=0.56.4",
+    "numpy>=1.23.5",
+    "scipy>=1.9.3",
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-pep517>=1.0.0"]
+build-backend = "pdm.pep517.api"
