@@ -65,11 +65,25 @@ class TestSumTree(unittest.TestCase):
         for i in range(1, 10):
             self.assertAlmostEqual(c[i] / c[i - 1], 2, places=1)
 
+    def test_threaded_writer(self):
+        tree = SumTree(10_000, dims=3, fast_mode=True)
+
+        idxs = np.arange(1000)
+        vals1 = np.arange(1000) * 1.1
+        vals2 = vals1 * 2
+        tree.update(0, idxs, vals1)
+        tree.update(0, idxs, vals1)
+        tree.update(0, idxs, vals2)
+
+        tree.sync()
+
+        s = vals2.sum()
+        self.assertAlmostEqual(tree.total(), s)
+
     def test_pickleable(self):
         tree = SumTree(123, dims=2)
         tree.update(0, np.arange(123), np.arange(123))
         tree.update(1, np.arange(123), np.sin(np.arange(123)))
-        tree._read()
 
         byt = pickle.dumps(tree)
         tree2 = pickle.loads(byt)

@@ -1,8 +1,8 @@
-from typing import Dict, Iterable, Optional
+from typing import Iterable, Optional
 import numpy as np
 from numba.typed import List as NList
 from ReplayTables._utils.jit import try2jit, try2vectorize
-from concurrent.futures import ThreadPoolExecutor, Future
+from ReplayTables._utils.MemoryWriter import MemoryWriter, ThreadedWriter
 
 W = Optional[np.ndarray]
 
@@ -46,7 +46,7 @@ def _query(tree: NList[np.ndarray], size: int, weights: np.ndarray, values: np.n
 
 
 class SumTree:
-    def __init__(self, size: int, dims: int = 1, _defer_build: bool = False):
+    def __init__(self, size: int, dims: int = 1, fast_mode: bool = False, _defer_build: bool = False):
         self._size = size
         self._dims = dims
 
@@ -59,8 +59,7 @@ class SumTree:
 
         self._tree: NList[np.ndarray] = NList(layers)
 
-        self._tpe = ThreadPoolExecutor(max_workers=5)
-        self._locks: Dict[int, Optional[Future]] = { i: None for i in range(dims) }
+        self._writer = ThreadedWriter(self._tree, dims) if fast_mode else MemoryWriter(self._tree, dims)
         # cached to avoid recreating this space in memory repeatedly
         self._u = np.ones(dims)
 
@@ -72,52 +71,27 @@ class SumTree:
     def size(self):
         return self._size
 
-    def _wait(self, dim: int):
-        lock = self._locks[dim]
-        if lock is not None:
-            lock.result()
-            self._locks[dim] = None
-
-    def _read(self, dim: int = -1):
-        if dim < 0:
-            for d in range(self._dims):
-                self._wait(d)
-
-        else:
-            self._wait(dim)
-
-        return self._tree
-
     def update(self, dim: int, idxs: Iterable[int], values: Iterable[float]):
         idxs = np.asarray(idxs)
         values = np.asarray(values)
 
-        self._wait(dim)
-        if len(idxs) > 10:
-            self._locks[dim] = self._tpe.submit(_update, self._tree, dim, idxs, values)
-        else:
-            _update(self._tree, dim, idxs, values)
+        self._writer.write(dim, idxs, values)
 
     def get_value(self, dim: int, idx: int) -> float:
-        tree = self._read(dim)
-        return tree[0][dim, idx]
+        return self._tree[0][dim, idx]
 
     def get_values(self, dim: int, idxs: np.ndarray) -> np.ndarray:
-        tree = self._read(dim)
-        return tree[0][dim, idxs]
+        return self._tree[0][dim, idxs]
 
     def dim_total(self, dim: int) -> float:
-        tree = self._read(dim)
-        return tree[-1][dim, 0]
+        return self._tree[-1][dim, 0]
 
     def all_totals(self) -> np.ndarray:
-        tree = self._read()
-        return tree[-1][:, 0]
+        return self._tree[-1][:, 0]
 
     def total(self, w: W = None) -> float:
-        tree = self._read()
         w_ = self._get_w(w)
-        return w_.dot(tree[-1])[0]
+        return w_.dot(self._tree[-1])[0]
 
     def effective_weights(self):
         t = self.all_totals()
@@ -128,9 +102,11 @@ class SumTree:
         t = self.total(w_)
         assert t > 0, "Cannot sample when the tree is empty or contains negative values"
 
-        tree = self._read()
         rs = rng.uniform(0, t, size=n)
-        return _query(tree, self._size, w_, rs)
+        return _query(self._tree, self._size, w_, rs)
+
+    def sync(self):
+        self._writer.sync()
 
     def _get_w(self, w: W = None):
         if w is None:
@@ -148,6 +124,7 @@ class SumTree:
     def __setstate__(self, state):
         self.__init__(state['size'], state['dims'], _defer_build=True)
         self._tree = NList(state['memory'])
+        self._writer._mem = self._tree
 
 @try2jit
 def _safe_invert(arr: np.ndarray):
