@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Any, Deque, Generic, List, NamedTuple, Optional, Protocol, TypeVar
+from typing import Any, Deque, Generic, List, Optional, Protocol, TypeVar
 from collections import deque
+from dataclasses import dataclass
 
 
 class Addable(Protocol):
@@ -28,16 +29,18 @@ class Experience(Protocol):
     gamma: Ring
     terminal: bool
 
-class LaggedExperience(NamedTuple):
+T = TypeVar('T', bound=Experience)
+
+@dataclass
+class LaggedExperience(Generic[T]):
     s: Any
     a: Any
     r: Any
     gamma: Any
     terminal: bool
     sp: Any
+    raw: T
 
-
-T = TypeVar('T', bound=Experience)
 class LagBuffer(Generic[T]):
     def __init__(self, lag: int):
         self._lag = lag
@@ -59,6 +62,7 @@ class LagBuffer(Generic[T]):
             gamma=g,
             terminal=experience.terminal,
             sp=experience.s,
+            raw=f,
         ))
 
         if not experience.terminal:
@@ -74,6 +78,7 @@ class LagBuffer(Generic[T]):
                 gamma=g,
                 terminal=experience.terminal,
                 sp=experience.s,
+                raw=f,
             ))
 
         return out

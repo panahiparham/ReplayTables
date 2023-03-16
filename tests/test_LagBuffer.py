@@ -46,11 +46,13 @@ class TestLagBuffer(unittest.TestCase):
             gamma=0,
             terminal=True,
             sp=4,
+            raw=exp1,
         ))
 
     def test_3_step(self):
         buffer = LagBuffer(3)
 
+        experiences = []
         for i in range(3):
             exp = Experience(
                 s=1 + i,
@@ -61,6 +63,8 @@ class TestLagBuffer(unittest.TestCase):
             )
             out = list(buffer.add(exp))
             self.assertEqual(out, [])
+
+            experiences.append(exp)
 
         exp = Experience(
             s=4,
@@ -78,6 +82,7 @@ class TestLagBuffer(unittest.TestCase):
             gamma=0.9 ** 3,
             terminal=False,
             sp=4,
+            raw=experiences[0],
         ))
 
         term = Experience(
@@ -97,7 +102,8 @@ class TestLagBuffer(unittest.TestCase):
             r=6 + (0.9 * 8) + (0.9 ** 2 * 10),
             gamma=0.,
             terminal=True,
-            sp=5
+            sp=5,
+            raw=experiences[1],
         ))
 
         self.assertEqual(out[1], LaggedExperience(
@@ -107,6 +113,7 @@ class TestLagBuffer(unittest.TestCase):
             gamma=0,
             terminal=True,
             sp=5,
+            raw=experiences[2],
         ))
 
         self.assertEqual(out[2], LaggedExperience(
@@ -116,6 +123,7 @@ class TestLagBuffer(unittest.TestCase):
             gamma=0,
             terminal=True,
             sp=5,
+            raw=exp,
         ))
 
     def test_flush(self):
