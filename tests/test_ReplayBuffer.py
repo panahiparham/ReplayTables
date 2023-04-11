@@ -6,8 +6,8 @@ from typing import NamedTuple
 from ReplayTables.ReplayBuffer import ReplayBuffer
 
 class Data(NamedTuple):
-    a: float
-    b: int
+    a: float | np.ndarray
+    b: int | np.ndarray
 
 
 class TestReplayBuffer(unittest.TestCase):
@@ -48,6 +48,31 @@ class TestReplayBuffer(unittest.TestCase):
         unique = np.unique(samples.b)
         unique.sort()
         self.assertTrue(np.all(unique == np.array([2, 3, 4, 5, 6])))
+
+    def test_getitem(self):
+        rng = np.random.RandomState(0)
+        buffer = ReplayBuffer(10, Data, rng)
+
+        for i in range(15):
+            buffer.add(Data(a=i, b=2 * i))
+
+        # should be the most recently added item
+        got, _, _ = buffer[0]
+        expect = Data(a=np.array([14]), b=np.array([28]))
+        self.assertEqual(got, expect)
+
+        # should be oldest item in buffer
+        got, _, _ = buffer[-1]
+        expect = Data(a=np.array([5]), b=np.array([10]))
+        self.assertEqual(got, expect)
+
+        got, _, _ = buffer[2:7:2]
+        expect = Data(
+            a=np.array([12, 10, 8]),
+            b=np.array([24, 20, 16]),
+        )
+        self.assertTrue(np.all(got.a == expect.a))
+        self.assertTrue(np.all(got.b == expect.b))
 
     def test_pickleable(self):
         rng = np.random.RandomState(0)
