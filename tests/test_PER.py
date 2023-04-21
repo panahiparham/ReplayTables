@@ -49,6 +49,23 @@ class TestPER(unittest.TestCase):
         unique.sort()
         self.assertTrue(np.all(unique == np.array([2, 3, 4, 5, 6])))
 
+    def test_priority_on_add(self):
+        rng = np.random.RandomState(0)
+        buffer = PrioritizedReplay(5, Data, rng)
+
+        d = Data(a=0.1, b=1)
+        buffer.add(d, priority=1)
+        d = Data(a=0.2, b=2)
+        buffer.add(d, priority=2)
+
+        batch, _, _ = buffer.sample(128)
+
+        b = np.sum(batch.b == 2)
+        a = np.sum(batch.b == 1)
+
+        self.assertEqual(b, 85)
+        self.assertEqual(a, 43)
+
     def test_pickeable(self):
         rng = np.random.RandomState(0)
         buffer = PrioritizedReplay(5, Data, rng)

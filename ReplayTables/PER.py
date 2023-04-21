@@ -34,7 +34,9 @@ class PrioritizedReplay(ReplayBufferInterface[T]):
         return np.asarray(idxs)
 
     def _update_dist(self, idx: int, /, **kwargs: Any):
-        if self._c.new_priority_mode == 'max':
+        if 'priority' in kwargs:
+            priority = kwargs['priority']
+        elif self._c.new_priority_mode == 'max':
             priority = self._max_priority
         elif self._c.new_priority_mode == 'mean':
             total_priority = self._idx_dist.tree.dim_total(self._p_dist.dim)
