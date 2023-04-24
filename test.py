@@ -1,13 +1,19 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from ReplayTables._utils.SumTree import SumTree
+from ReplayTables._utils.MinMaxHeap import MinMaxHeap
 
-rng = np.random.RandomState(2)
+h = MinMaxHeap()
+h.add(3, 'a')
+h.add(1, 'b')
+h.add(2, 'c')
+h.add(6, 'd')
+h.add(4, 'e')
+h.add(8, 'f')
 
-t = SumTree(1000)
-t.update(0, list(range(950)), np.linspace(-5, 5, num=950) ** 2)
-x = t.sample(rng, 500000)
+print(h._heap)
+print(h.max())
+print(h.min())
 
-counts = np.unique(x, return_counts=True)
-plt.bar(*counts, width=1)
-plt.show()
+print(h.pop_min())
+print(h._heap)
+
+print(h.pop_max())
+print(h._heap)

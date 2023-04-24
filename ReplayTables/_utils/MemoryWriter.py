@@ -4,7 +4,7 @@ from numba.typed import List as NList
 from ReplayTables._utils.jit import try2jit
 from concurrent.futures import ThreadPoolExecutor, Future
 
-@try2jit
+@try2jit()
 def _update(tree: NList[np.ndarray], dim: int, idxs: np.ndarray, values: np.ndarray):
     for idx, value in zip(idxs, values):
         sub_idx = idx

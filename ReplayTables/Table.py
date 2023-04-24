@@ -226,12 +226,12 @@ class View:
         for key in keys:
             del self._refs[key]
 
-@try2jit
+@try2jit()
 def rotatedSequence(lo: int, hi: int, mod: int) -> np.ndarray:
     seq = np.arange(lo, hi, dtype=np.int64)
     return seq % mod
 
-@try2jit
+@try2jit()
 def padded(arr: np.ndarray, size: int, mult: int, value: float = np.nan):
     s = int(np.ceil(size / mult) * mult)
     out = np.ones((s, ) + arr.shape[1:], dtype=arr.dtype) * value

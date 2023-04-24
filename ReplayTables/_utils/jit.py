@@ -5,17 +5,20 @@ import numpy.typing as npt
 _has_warned = False
 T = TypeVar('T', bound=Callable[..., Any])
 
-def try2jit(f: T) -> T:
-    try:
-        from numba import njit
-        return njit(f, cache=True, nogil=True, fastmath=True)
-    except Exception:
-        global _has_warned
-        if not _has_warned:
-            _has_warned = True
-            logging.getLogger('ReplayTables').warn('Could not jit compile --- expect slow performance')
+def try2jit(fastmath: bool = True, inline: Any = 'never'):
+    def _inner(f: T) -> T:
+        try:
+            from numba import njit
+            return njit(f, cache=True, nogil=True, fastmath=fastmath, inline=inline)
+        except Exception:
+            global _has_warned
+            if not _has_warned:
+                _has_warned = True
+                logging.getLogger('ReplayTables').warn('Could not jit compile --- expect slow performance')
 
-        return f
+            return f
+
+    return _inner
 
 
 class Vectorized(Protocol):

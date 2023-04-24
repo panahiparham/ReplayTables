@@ -7,13 +7,13 @@ from ReplayTables._utils.MemoryWriter import MemoryWriter, ThreadedWriter
 W = Optional[np.ndarray]
 
 
-@try2jit
+@try2jit()
 def _nearestPowerOf2(x: float):
     i = np.log2(x)
     u = np.ceil(i)
     return int(2**u)
 
-@try2jit
+@try2jit()
 def _update(tree: NList[np.ndarray], dim: int, idxs: np.ndarray, values: np.ndarray):
     for idx, value in zip(idxs, values):
         sub_idx = idx
@@ -27,7 +27,7 @@ def _update(tree: NList[np.ndarray], dim: int, idxs: np.ndarray, values: np.ndar
 def _bound(x: int, ma: int):
     return min(x, ma)
 
-@try2jit
+@try2jit()
 def _query(tree: NList[np.ndarray], size: int, weights: np.ndarray, values: np.ndarray):
     totals = np.zeros(len(values))
     idxs = np.zeros(len(values), dtype=np.int64)
@@ -126,7 +126,7 @@ class SumTree:
         self._tree = NList(state['memory'])
         self._writer._mem = self._tree
 
-@try2jit
+@try2jit()
 def _safe_invert(arr: np.ndarray):
     out = np.empty_like(arr)
     for i in range(len(arr)):
