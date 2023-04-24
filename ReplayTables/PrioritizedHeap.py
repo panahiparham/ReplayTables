@@ -17,7 +17,8 @@ class PrioritizedHeap(ReplayBufferInterface[T]):
         self._c = config or PrioritizedHeapConfig()
         self._heap = MinMaxHeap[int]()
 
-    def add(self, transition: T, /, priority: float, **kwargs: Any):
+    def add(self, transition: T, /, **kwargs: Any):
+        priority = kwargs['priority']
         if priority < self._c.threshold:
             return -1
 
