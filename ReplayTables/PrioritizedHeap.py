@@ -1,10 +1,10 @@
 import numpy as np
 import dataclasses
 
-from typing import Any, Optional, Type
+from typing import cast, Any, Optional, Tuple, Type
 from ReplayTables._utils.logger import logger
 from ReplayTables._utils.MinMaxHeap import MinMaxHeap
-from ReplayTables.ReplayBuffer import ReplayBufferInterface, T
+from ReplayTables.ReplayBuffer import ReplayBufferInterface, EID, EIDS, T
 
 @dataclasses.dataclass
 class PrioritizedHeapConfig:
@@ -15,7 +15,17 @@ class PrioritizedHeap(ReplayBufferInterface[T]):
         super().__init__(max_size, structure, rng)
 
         self._c = config or PrioritizedHeapConfig()
-        self._heap = MinMaxHeap[int]()
+        self._heap = MinMaxHeap[EID]()
+
+    def size(self):
+        return self._heap.size()
+
+    def _add(self, transition: T):
+        eid = cast(EID, self._t)
+        self._t += 1
+
+        self._storage[eid] = transition
+        return eid
 
     def add(self, transition: T, /, **kwargs: Any):
         priority = kwargs['priority']
@@ -25,13 +35,15 @@ class PrioritizedHeap(ReplayBufferInterface[T]):
         if self.size() == self._max_size and priority < self._heap.min()[0]:
             return -1
 
-        idx = super().add(transition, **kwargs)
+        eid = self._add(transition)
         if self.size() == self._max_size:
-            p, _ = self._heap.pop_min()
+            p, tossed_eid = self._heap.pop_min()
             logger.debug(f'Heap is full. Tossing priority: {p}')
+            del self._storage[tossed_eid]
 
-        self._heap.add(priority, idx)
-        return idx
+        logger.debug(f'Adding element: {priority}')
+        self._heap.add(priority, eid)
+        return eid
 
     def _pop_idx(self):
         if self._heap.size() == 0:
@@ -55,5 +67,13 @@ class PrioritizedHeap(ReplayBufferInterface[T]):
         idxs = (d for d in idxs if d is not None)
         return np.fromiter(idxs, dtype=np.int64)
 
-    def _isr_weights(self, idxs: np.ndarray) -> np.ndarray:
+    def sample(self, n: int) -> Tuple[T, EIDS, np.ndarray]:
+        batch, idxs, weights = super().sample(n)
+
+        for idx in idxs:
+            del self._storage[idx]
+
+        return batch, idxs, weights
+
+    def _isr_weights(self, idxs: EIDS) -> np.ndarray:
         return np.ones(len(idxs))

@@ -1,7 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
-from typing import Any, Optional, Type
-from ReplayTables.ReplayBuffer import ReplayBufferInterface, T
+from typing import cast, Any, Optional, Type
+from ReplayTables.ReplayBuffer import ReplayBufferInterface, EIDS, T
 from ReplayTables.Distributions import MixinUniformDistribution, MixtureDistribution, PrioritizedDistribution, SubDistribution, UniformDistribution
 
 @dataclass
@@ -29,9 +29,9 @@ class PrioritizedReplay(ReplayBufferInterface[T]):
 
         self._max_priority = 1e-16
 
-    def _sample_idxs(self, n: int) -> np.ndarray:
+    def _sample_idxs(self, n: int) -> EIDS:
         idxs = self._idx_dist.sample(self._rng, n)
-        return np.asarray(idxs)
+        return cast(EIDS, np.asarray(idxs))
 
     def _update_dist(self, idx: int, /, **kwargs: Any):
         if 'priority' in kwargs:
@@ -51,10 +51,10 @@ class PrioritizedReplay(ReplayBufferInterface[T]):
         self._p_dist.update(idxs, priorities)
         self._uniform.update(idxs)
 
-    def _isr_weights(self, idxs: np.ndarray):
+    def _isr_weights(self, idxs: EIDS):
         return self._idx_dist.isr(self._target, idxs)
 
-    def update_priorities(self, idxs: np.ndarray, priorities: np.ndarray):
+    def update_priorities(self, idxs: EIDS, priorities: np.ndarray):
         priorities = priorities ** self._c.priority_exponent
         self._p_dist.update(idxs, priorities)
 

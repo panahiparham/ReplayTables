@@ -11,14 +11,14 @@ class MinMaxHeap(Generic[T]):
         super().__init__()
 
         self._t = 0
-        self._i = 0
+        self._i = np.array(0, dtype=np.uint32)
         self._storage: Dict[int, T] = {}
 
         self._heap: _HEAP = (
             # actual heap values
             np.zeros(4),
             # storage pointers
-            np.zeros(4, dtype=np.int_),
+            np.zeros(4, dtype=np.uint32),
         )
 
     def add(self, priority: float, item: T):
@@ -26,12 +26,12 @@ class MinMaxHeap(Generic[T]):
 
         self._heap[0][self._t] = priority
         self._heap[1][self._t] = self._i
-        self._storage[self._i] = item
+        self._storage[self._i.item()] = item
 
         self._heap = _push_up(self._heap, self._t)
 
         self._t += 1
-        self._i += 1
+        self._i += np.array(1, dtype=np.uint32)
 
     def size(self):
         return self._t
@@ -49,54 +49,48 @@ class MinMaxHeap(Generic[T]):
     def min(self):
         return self._get(0)
 
-    def _max(self):
+    def _max_i(self):
         p, _ = self._heap
 
         if self._t == 1:
-            return self._get(0), 0
+            return 0
 
         if self._t == 2:
-            return self._get(1), 1
+            return 1
 
         if p[1] > p[2]:
-            return self._get(1), 1
+            return 1
 
-        return self._get(2), 2
+        return 2
 
     def max(self):
-        return self._max()[0]
+        i = self._max_i()
+        return self._get(i)
 
     def pop_min(self):
         p = self._heap[0][0]
         idx = self._heap[1][0]
         v = self._storage[idx]
-
-        self._heap[0][0] = self._heap[0][self._t - 1]
-        self._heap[1][0] = self._heap[1][self._t - 1]
-        self._heap[0][self._t - 1] = 0
-        self._heap[1][self._t - 1] = 0
-
-        self._heap = _push_down(self._heap, 0, self._t - 1)
-        self._t -= 1
+        self._replace_with_last(0)
 
         del self._storage[idx]
         return p, v
 
     def pop_max(self):
-        d, i = self._max()
+        i = self._max_i()
+
+        p = self._heap[0][i]
         idx = self._heap[1][i]
 
-        if self._t > 2:
-            self._heap[0][i] = self._heap[0][self._t - 1]
-            self._heap[1][i] = self._heap[1][self._t - 1]
-            self._heap[0][self._t - 1] = 0
-            self._heap[1][self._t - 1] = 0
+        v = self._storage[idx]
+        self._replace_with_last(i)
 
-            _push_down(self._heap, i, self._t - 1)
-
-        self._t -= 1
         del self._storage[idx]
-        return d
+        return p, v
+
+    def _replace_with_last(self, i: int):
+        self._t -= 1
+        self._heap = _delete(self._heap, i, self._t)
 
 
 @try2jit()
@@ -111,11 +105,6 @@ def _extend(heap: _HEAP) -> _HEAP:
     )
 
 @try2jit()
-def _is_min_level(i: int):
-    level = np.floor(np.log2(i + 1))
-    return level % 2 == 0
-
-@try2jit()
 def swap(h: _HEAP, i: int, j: int):
     v = h[0][i]
     idx = h[1][i]
@@ -124,6 +113,11 @@ def swap(h: _HEAP, i: int, j: int):
     h[0][j] = v
     h[1][j] = idx
     return h
+
+@try2jit(inline='always')
+def _is_min_level(i: int):
+    level = np.floor(np.log2(i + 1))
+    return level % 2 == 0
 
 @try2jit(inline='always')
 def parent(i: int):
@@ -145,6 +139,19 @@ def grandchild(i: int):
 def _has_children(i: int, size: int):
     c = child(i)
     return c < size
+
+@try2jit()
+def _delete(h: _HEAP, i: int, size: int):
+    # do the replacement
+    h[0][i] = h[0][size]
+    h[1][i] = h[1][size]
+
+    # wipe away residual
+    h[0][size] = 0
+    h[1][size] = 0
+
+    # ensure heap property is respected
+    return _push_down(h, i, size)
 
 # -------------
 # -- Push up --

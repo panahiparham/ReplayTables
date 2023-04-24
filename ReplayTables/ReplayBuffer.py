@@ -1,10 +1,11 @@
 import numpy as np
 from abc import abstractmethod
-from typing import Any, Dict, Generic, List, NamedTuple, Tuple, TypeVar, Type, Union, cast
+from typing import Any, Dict, Generic, List, NamedTuple, NewType, Tuple, TypeVar, Type, Union, cast
 from ReplayTables.Distributions import UniformDistribution
 
 T = TypeVar('T', bound=NamedTuple)
-
+EID = NewType('EID', int)
+EIDS = NewType('EIDS', np.ndarray)
 
 class ReplayBufferInterface(Generic[T]):
     def __init__(self, max_size: int, structure: Type[T], rng: np.random.RandomState):
@@ -13,7 +14,7 @@ class ReplayBufferInterface(Generic[T]):
         self._rng = rng
 
         self._t = 0
-        self._storage: Dict[int, T] = {}
+        self._storage: Dict[EID, T] = {}
 
         self._views: List[ReplayViewInterface[T]] = []
 
@@ -21,7 +22,7 @@ class ReplayBufferInterface(Generic[T]):
         return len(self._storage)
 
     def add(self, transition: T, /, **kwargs: Any):
-        idx = self._t % self._max_size
+        idx = cast(EID, self._t % self._max_size)
         self._t += 1
 
         self._storage[idx] = transition
@@ -31,12 +32,12 @@ class ReplayBufferInterface(Generic[T]):
 
         return idx
 
-    def sample(self, n: int) -> Tuple[T, np.ndarray, np.ndarray]:
+    def sample(self, n: int) -> Tuple[T, EIDS, np.ndarray]:
         idxs = self._sample_idxs(n)
         weights = self._isr_weights(idxs)
         return self.get(idxs), idxs, weights
 
-    def get(self, idxs: np.ndarray):
+    def get(self, idxs: EIDS):
         samples = (self._storage[i] for i in idxs)
         stacked = (np.stack(xs, axis=0) for xs in zip(*samples))
 
@@ -45,13 +46,13 @@ class ReplayBufferInterface(Generic[T]):
     def register_view(self, view: Any):
         self._views.append(view)
 
-    def backwards_idxs(self, idxs: np.ndarray):
+    def backwards_idxs(self, idxs: np.ndarray) -> EIDS:
         t = self._t - 1
-        return (t - idxs) % self.size()
+        return cast(EIDS, (t - idxs) % self.size())
 
-    def forwards_idxs(self, idxs: np.ndarray):
+    def forwards_idxs(self, idxs: np.ndarray) -> EIDS:
         t = self._t - 1
-        return ((t - self.size()) + idxs) % self.size()
+        return cast(EIDS, ((t - self.size()) + idxs) % self.size())
 
     def __getitem__(self, idx: Union[int, slice]):
         # 0 means the newest element
@@ -68,10 +69,10 @@ class ReplayBufferInterface(Generic[T]):
 
     # required private methods
     @abstractmethod
-    def _sample_idxs(self, n: int) -> np.ndarray: ...
+    def _sample_idxs(self, n: int) -> EIDS: ...
 
     @abstractmethod
-    def _isr_weights(self, idxs: np.ndarray) -> np.ndarray: ...
+    def _isr_weights(self, idxs: EIDS) -> np.ndarray: ...
 
     # optional methods
     def _update_dist(self, idx: int, /, **kwargs: Any): ...
@@ -101,17 +102,17 @@ class ReplayViewInterface(Generic[T]):
     def size(self) -> int:
         return self._buffer.size()
 
-    def sample(self, n: int) -> Tuple[T, np.ndarray, np.ndarray]:
+    def sample(self, n: int) -> Tuple[T, EIDS, np.ndarray]:
         idxs = self._sample_idxs(n)
         weights = self._isr_weights(idxs)
         return self._buffer.get(idxs), idxs, weights
 
     # required private methods
     @abstractmethod
-    def _sample_idxs(self, n: int) -> np.ndarray: ...
+    def _sample_idxs(self, n: int) -> EIDS: ...
 
     @abstractmethod
-    def _isr_weights(self, idxs: np.ndarray) -> np.ndarray: ...
+    def _isr_weights(self, idxs: EIDS) -> np.ndarray: ...
 
     # optional methods
     def _update_dist(self, idx: int, /, **kwargs: Any): ...

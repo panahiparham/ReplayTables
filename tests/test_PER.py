@@ -1,8 +1,9 @@
 import unittest
 import pickle
 import numpy as np
-from typing import NamedTuple
+from typing import cast, NamedTuple
 
+from ReplayTables.ReplayBuffer import EIDS
 from ReplayTables.PER import PrioritizedReplay
 
 class Data(NamedTuple):
@@ -73,7 +74,8 @@ class TestPER(unittest.TestCase):
         for i in range(5):
             buffer.add(Data(i, 2 * i))
 
-        buffer.update_priorities(np.arange(5), np.arange(5) + 1)
+        ids = cast(EIDS, np.arange(5))
+        buffer.update_priorities(ids, np.arange(5) + 1)
 
         byt = pickle.dumps(buffer)
         buffer2 = pickle.loads(byt)
