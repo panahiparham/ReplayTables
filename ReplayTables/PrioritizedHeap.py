@@ -45,6 +45,14 @@ class PrioritizedHeap(ReplayBufferInterface[T]):
         self._heap.add(priority, eid)
         return eid
 
+    def _pop_min_idx(self):
+        if self._heap.size() == 0:
+            return None
+
+        p, idx = self._heap.pop_min()
+        logger.debug(f'Grabbed sample with priority: {p}')
+        return idx
+
     def _pop_idx(self):
         if self._heap.size() == 0:
             return None
@@ -52,6 +60,15 @@ class PrioritizedHeap(ReplayBufferInterface[T]):
         p, idx = self._heap.pop_max()
         logger.debug(f'Grabbed sample with priority: {p}')
         return idx
+
+    def pop_min(self):
+        idx = self._pop_min_idx()
+        if idx is None:
+            return None
+
+        d = self._storage[idx]
+        del self._storage[idx]
+        return d
 
     def pop(self):
         idx = self._pop_idx()
