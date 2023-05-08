@@ -32,7 +32,7 @@ authors = [
     {name = "Andy Patterson", email = "andnpatterson@gmail.com"},
 ]
 dependencies = [
-    "numba>=0.56.4",
+    "numba>=0.57",
     "numpy>=1.23.5",
     "scipy>=1.9.3",
 ]

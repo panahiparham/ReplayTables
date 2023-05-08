@@ -97,7 +97,7 @@ class SumTree:
         t = self.all_totals()
         return _safe_invert(t)
 
-    def sample(self, rng: np.random.RandomState, n: int, w: W = None) -> np.ndarray:
+    def sample(self, rng: np.random.Generator, n: int, w: W = None) -> np.ndarray:
         w_ = self._get_w(w)
         t = self.total(w_)
         assert t > 0, "Cannot sample when the tree is empty or contains negative values"

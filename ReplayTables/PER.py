@@ -12,7 +12,7 @@ class PERConfig:
     max_decay: float = 1.
 
 class PrioritizedReplay(ReplayBufferInterface[T]):
-    def __init__(self, max_size: int, structure: Type[T], rng: np.random.RandomState, config: Optional[PERConfig] = None):
+    def __init__(self, max_size: int, structure: Type[T], rng: np.random.Generator, config: Optional[PERConfig] = None):
         super().__init__(max_size, structure, rng)
 
         self._c = config or PERConfig()

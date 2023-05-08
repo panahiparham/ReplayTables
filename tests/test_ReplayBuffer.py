@@ -12,7 +12,7 @@ class Data(NamedTuple):
 
 class TestReplayBuffer(unittest.TestCase):
     def test_simple_buffer(self):
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
         buffer = ReplayBuffer(5, Data, rng)
 
         # on creation, the buffer should have no size
@@ -50,7 +50,7 @@ class TestReplayBuffer(unittest.TestCase):
         self.assertTrue(np.all(unique == np.array([2, 3, 4, 5, 6])))
 
     def test_getitem(self):
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
         buffer = ReplayBuffer(10, Data, rng)
 
         for i in range(15):
@@ -75,7 +75,7 @@ class TestReplayBuffer(unittest.TestCase):
         self.assertTrue(np.all(got.b == expect.b))
 
     def test_pickleable(self):
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
         buffer = ReplayBuffer(5, Data, rng)
 
         for i in range(8):

@@ -16,9 +16,9 @@ class TestSumTree(unittest.TestCase):
 
         # fuzz test
         tree = SumTree(100, dims=1)
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
         for _ in range(100):
-            v = rng.randn(100)
+            v = rng.standard_normal(100)
             truth = v.sum()
             tree.update(0, np.arange(100), v)
 
@@ -26,9 +26,9 @@ class TestSumTree(unittest.TestCase):
 
     def test_can_add_stuff_in_multiple_dims(self):
         tree = SumTree(213, dims=2)
-        rng = np.random.RandomState(1)
+        rng = np.random.default_rng(1)
         for _ in range(50):
-            v = rng.randint(0, 1000, size=(2, 213))
+            v = rng.integers(0, 1000, size=(2, 213))
             truth = v.sum(axis=1)
 
             idxs = rng.permutation(213)
@@ -41,7 +41,7 @@ class TestSumTree(unittest.TestCase):
         tree = SumTree(50, dims=1)
         tree.update(0, np.arange(50), np.ones(50))
 
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
         samples = tree.sample(rng, 10000)
 
         u, c = np.unique(samples, return_counts=True)
@@ -56,7 +56,7 @@ class TestSumTree(unittest.TestCase):
 
         # NOTE: it takes a shockingly high number of samples for the proportions
         # to converge even within a single decimal point..
-        rng = np.random.RandomState(22)
+        rng = np.random.default_rng(22)
         samples = tree.sample(rng, 10000000)
 
         u, c = np.unique(samples, return_counts=True)

@@ -11,7 +11,7 @@ class Data(NamedTuple):
 
 class TestPrioritizedHeap(unittest.TestCase):
     def test_simple_buffer(self):
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
 
         buffer = PrioritizedHeap(
             max_size=10,

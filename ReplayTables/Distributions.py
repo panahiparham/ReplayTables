@@ -8,7 +8,7 @@ class Distribution:
     def probs(self, idxs: npt.ArrayLike):
         raise NotImplementedError('Expected probs to be implemented')
 
-    def sample(self, rng: np.random.RandomState, n: int):
+    def sample(self, rng: np.random.Generator, n: int):
         raise NotImplementedError('Expected sample to be implemented')
 
     def isr(self, target: Distribution, idxs: np.ndarray):
@@ -24,11 +24,11 @@ class UniformDistribution(Distribution):
     def update(self, size: int):
         self._size = size
 
-    def sample(self, rng: np.random.RandomState, n: int):
+    def sample(self, rng: np.random.Generator, n: int):
         if self._size == 1:
             return np.zeros(n)
 
-        return rng.randint(0, self._size, size=n)
+        return rng.integers(0, self._size, size=n)
 
     def probs(self, idxs: npt.ArrayLike):
         return np.full_like(idxs, fill_value=(1 / self._size), dtype=np.float_)
@@ -80,7 +80,7 @@ class PrioritizedDistribution(Distribution):
         v = self.tree.get_values(self.dim, idxs)
         return v / t
 
-    def sample(self, rng: np.random.RandomState, n: int):
+    def sample(self, rng: np.random.Generator, n: int):
         return self.tree.sample(rng, n, self.weights)
 
     def update(self, idxs: np.ndarray, values: np.ndarray):
@@ -146,7 +146,7 @@ class MixtureDistribution(Distribution):
         p = w.dot(sub)
         return p
 
-    def sample(self, rng: np.random.RandomState, n: int):
+    def sample(self, rng: np.random.Generator, n: int):
         w = self._filter_defunct()
         w = w * self._tree.effective_weights()
         return self._tree.sample(rng, n, w)

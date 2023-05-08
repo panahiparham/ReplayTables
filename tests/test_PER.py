@@ -13,7 +13,7 @@ class Data(NamedTuple):
 
 class TestPER(unittest.TestCase):
     def test_simple_buffer(self):
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
         buffer = PrioritizedReplay(5, Data, rng)
 
         # on creation, the buffer should have no size
@@ -51,7 +51,7 @@ class TestPER(unittest.TestCase):
         self.assertTrue(np.all(unique == np.array([2, 3, 4, 5, 6])))
 
     def test_priority_on_add(self):
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
         buffer = PrioritizedReplay(5, Data, rng)
 
         d = Data(a=0.1, b=1)
@@ -64,11 +64,11 @@ class TestPER(unittest.TestCase):
         b = np.sum(batch.b == 2)
         a = np.sum(batch.b == 1)
 
-        self.assertEqual(b, 85)
-        self.assertEqual(a, 43)
+        self.assertEqual(b, 91)
+        self.assertEqual(a, 37)
 
     def test_pickeable(self):
-        rng = np.random.RandomState(0)
+        rng = np.random.default_rng(0)
         buffer = PrioritizedReplay(5, Data, rng)
 
         for i in range(5):

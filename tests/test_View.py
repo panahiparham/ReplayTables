@@ -33,7 +33,7 @@ class TestView(unittest.TestCase):
             # importantly, the last bits of the sequence will be incomplete
             # these are padded with np.nan for floats and 0 for ints (by default, configurable)
             [18, 19, 0 ],
-            [19, 0 , 0 ],
+            [19, 0, 0 ],
         ]))
 
         # if we try to add a view to a table that already has data
@@ -65,7 +65,7 @@ class TestView(unittest.TestCase):
             [15, 16, 17],
             [16, 17, 18],
             [17, 18, 19],
-            [18, 19,  -22],
+            [18, 19, -22],
             [19, -22, -22],
         ]))
 
@@ -138,15 +138,15 @@ class TestView(unittest.TestCase):
         # now I want 2 of those trajectories sampled at random
         A, B, C = view3.sample(2)
         self.assertTrue(np.allclose(C, [
-            [15, 0, 0],
             [17, 18, 19],
+            [15, 0, 0],
         ]))
 
         A, B, C = view5.sample(3)
         self.assertTrue(np.allclose(C, [
             [15, 0, 0, 0, 0],
             [16, 17, 18, 19, 0],
-            [19, 0, 0, 0, 0],
+            [15, 0, 0, 0, 0],
         ]))
 
     def test_getLastComplete(self):

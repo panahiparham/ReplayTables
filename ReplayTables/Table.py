@@ -33,7 +33,7 @@ class Table:
         self._column_defs = columns
 
         self.seed = seed
-        self._rng = np.random.RandomState(seed)
+        self._rng = np.random.default_rng(seed)
 
         # monotonically increasing index which counts how many times we've added
         # technically we rely on numpy.int64 in the code so there is a limit
@@ -177,7 +177,7 @@ class View:
         return tuple(map(np.stack, zip(*cols)))
 
     def _resample(self) -> Tuple[int, int]:
-        idx = self._table._rng.randint(0, len(self._refs))
+        idx = self._table._rng.integers(0, len(self._refs))
         seq = self._refs.getIndex(idx)
 
         age = self._table._idx - seq[0]

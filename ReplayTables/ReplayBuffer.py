@@ -8,7 +8,7 @@ EID = NewType('EID', int)
 EIDS = NewType('EIDS', np.ndarray)
 
 class ReplayBufferInterface(Generic[T]):
-    def __init__(self, max_size: int, structure: Type[T], rng: np.random.RandomState):
+    def __init__(self, max_size: int, structure: Type[T], rng: np.random.Generator):
         self._max_size = max_size
         self._structure = cast(Any, structure)
         self._rng = rng
@@ -79,7 +79,7 @@ class ReplayBufferInterface(Generic[T]):
 
 
 class ReplayBuffer(ReplayBufferInterface[T]):
-    def __init__(self, max_size: int, structure: Type[T], rng: np.random.RandomState):
+    def __init__(self, max_size: int, structure: Type[T], rng: np.random.Generator):
         super().__init__(max_size, structure, rng)
         self._idx_dist = UniformDistribution(0)
 

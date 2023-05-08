@@ -44,8 +44,8 @@ class TestTable(unittest.TestCase):
 
         A, B = table.sample(3)
         self.assertTrue(np.allclose(A, [
-            [0, 7, 14],
             [0, 5, 10],
             [0, 6, 12],
+            [0, 7, 14],
         ]))
-        self.assertTrue(np.allclose(B, [49, 25, 36]))
+        self.assertTrue(np.allclose(B, [25, 36, 49]))

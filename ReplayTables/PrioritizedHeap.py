@@ -11,7 +11,7 @@ class PrioritizedHeapConfig:
     threshold: float = 1.0
 
 class PrioritizedHeap(ReplayBufferInterface[T]):
-    def __init__(self, max_size: int, structure: Type[T], rng: np.random.RandomState, config: Optional[PrioritizedHeapConfig] = None):
+    def __init__(self, max_size: int, structure: Type[T], rng: np.random.Generator, config: Optional[PrioritizedHeapConfig] = None):
         super().__init__(max_size, structure, rng)
 
         self._c = config or PrioritizedHeapConfig()
