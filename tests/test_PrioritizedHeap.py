@@ -8,7 +8,6 @@ class Data(NamedTuple):
     a: float | np.ndarray
     b: int | np.ndarray
 
-
 class TestPrioritizedHeap(unittest.TestCase):
     def test_simple_buffer(self):
         rng = np.random.default_rng(0)

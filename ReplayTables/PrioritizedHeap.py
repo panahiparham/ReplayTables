@@ -27,7 +27,9 @@ class PrioritizedHeap(ReplayBufferInterface[T]):
         else:
             eid = cast(EID, self._t)
             self._t += 1
-            setattr(transition, '_eid', eid)
+            try:
+                setattr(transition, '_eid', eid)
+            except Exception: ...
 
         self._storage[eid] = transition
         return eid
