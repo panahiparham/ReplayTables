@@ -21,8 +21,13 @@ class PrioritizedHeap(ReplayBufferInterface[T]):
         return self._heap.size()
 
     def _add(self, transition: T):
-        eid = cast(EID, self._t)
-        self._t += 1
+        if hasattr(transition, '_eid'):
+            eid = getattr(transition, '_eid')
+            eid = cast(EID, eid)
+        else:
+            eid = cast(EID, self._t)
+            self._t += 1
+            setattr(transition, '_eid', eid)
 
         self._storage[eid] = transition
         return eid
