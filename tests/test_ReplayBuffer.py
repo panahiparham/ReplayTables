@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import pickle
+from dataclasses import dataclass, fields
 from typing import NamedTuple
 
 from ReplayTables.ReplayBuffer import ReplayBuffer
@@ -9,6 +10,13 @@ class Data(NamedTuple):
     a: float | np.ndarray
     b: int | np.ndarray
 
+@dataclass
+class Data2:
+    b: float | np.ndarray
+    c: float | np.ndarray
+
+    def __iter__(self):
+        return (getattr(self, field.name) for field in fields(self))
 
 class TestReplayBuffer(unittest.TestCase):
     def test_simple_buffer(self):
@@ -48,6 +56,19 @@ class TestReplayBuffer(unittest.TestCase):
         unique = np.unique(samples.b)
         unique.sort()
         self.assertTrue(np.all(unique == np.array([2, 3, 4, 5, 6])))
+
+        # -------------------------------
+        # Can also handle other iterables
+
+        rng = np.random.default_rng(0)
+        buffer = ReplayBuffer(5, Data2, rng)
+        buffer.add(Data2(1, 2))
+        buffer.add(Data2(2, 3))
+
+        samples, _, _ = buffer.sample(2)
+        self.assertTrue(
+            np.all(samples.b == np.array([2, 2]))
+        )
 
     def test_getitem(self):
         rng = np.random.default_rng(0)

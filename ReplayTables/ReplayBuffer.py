@@ -1,9 +1,9 @@
 import numpy as np
 from abc import abstractmethod
-from typing import Any, Dict, Generic, List, NamedTuple, NewType, Tuple, TypeVar, Type, Union, cast
+from typing import Any, Dict, Generic, Iterable, List, NewType, Tuple, TypeVar, Type, Union, cast
 from ReplayTables.Distributions import UniformDistribution
 
-T = TypeVar('T', bound=NamedTuple)
+T = TypeVar('T', bound=Iterable)
 EID = NewType('EID', int)
 EIDS = NewType('EIDS', np.ndarray)
 
