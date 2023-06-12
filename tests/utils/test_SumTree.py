@@ -1,10 +1,9 @@
-import unittest
 import pickle
 import numpy as np
 
 from ReplayTables._utils.SumTree import SumTree
 
-class TestSumTree(unittest.TestCase):
+class TestSumTree:
     def test_can_add_stuff(self):
         # human readable test
         v = np.array([1, 2, 3, 4, 5])
@@ -12,7 +11,7 @@ class TestSumTree(unittest.TestCase):
         tree = SumTree(500, dims=1)
         tree.update(0, [0, 5, 8, 102, 358], v)
 
-        self.assertEqual(tree.dim_total(0), truth)
+        assert tree.dim_total(0) == truth
 
         # fuzz test
         tree = SumTree(100, dims=1)
@@ -22,7 +21,7 @@ class TestSumTree(unittest.TestCase):
             truth = v.sum()
             tree.update(0, np.arange(100), v)
 
-            self.assertTrue(np.isclose(tree.dim_total(0), truth))
+            assert np.isclose(tree.dim_total(0), truth)
 
     def test_can_add_stuff_in_multiple_dims(self):
         tree = SumTree(213, dims=2)
@@ -35,7 +34,7 @@ class TestSumTree(unittest.TestCase):
             tree.update(0, idxs, v[0])
             tree.update(1, idxs, v[1])
 
-            self.assertTrue(np.allclose(truth, tree.all_totals()))
+            assert np.allclose(truth, tree.all_totals())
 
     def test_can_sample(self):
         tree = SumTree(50, dims=1)
@@ -45,10 +44,10 @@ class TestSumTree(unittest.TestCase):
         samples = tree.sample(rng, 10000)
 
         u, c = np.unique(samples, return_counts=True)
-        self.assertTrue(np.all(u == np.arange(50)))
-        self.assertTrue(np.all(
+        assert np.all(u == np.arange(50))
+        assert np.all(
             (c >= 150) & (c <= 250)
-        ))
+        )
 
     def test_can_sample_proportionally(self):
         tree = SumTree(10, dims=1)
@@ -60,10 +59,10 @@ class TestSumTree(unittest.TestCase):
         samples = tree.sample(rng, 10000000)
 
         u, c = np.unique(samples, return_counts=True)
-        self.assertTrue(np.all(u == np.arange(10)))
+        assert np.all(u == np.arange(10))
 
         for i in range(1, 10):
-            self.assertAlmostEqual(c[i] / c[i - 1], 2, places=1)
+            assert np.isclose(c[i] / c[i - 1], 2, atol=0.1)
 
     def test_threaded_writer(self):
         tree = SumTree(10_000, dims=3, fast_mode=True)
@@ -78,7 +77,7 @@ class TestSumTree(unittest.TestCase):
         tree.sync()
 
         s = vals2.sum()
-        self.assertAlmostEqual(tree.total(), s)
+        assert np.isclose(tree.total(), s)
 
     def test_pickleable(self):
         tree = SumTree(123, dims=2)
@@ -88,13 +87,41 @@ class TestSumTree(unittest.TestCase):
         byt = pickle.dumps(tree)
         tree2 = pickle.loads(byt)
 
-        self.assertTrue(np.all(
+        assert np.all(
             tree.all_totals() == tree2.all_totals()
-        ))
+        )
 
         tree.update(0, [2], [22])
         tree2.update(0, [2], [22])
 
-        self.assertTrue(np.all(
+        assert np.all(
             tree.all_totals() == tree2.all_totals()
-        ))
+        )
+
+# ----------------
+# -- Benchmarks --
+# ----------------
+class TestBenchmarks:
+    def test_sumtree_update(self, benchmark):
+        tree = SumTree(100_000, dims=1)
+        rng = np.random.default_rng(0)
+        idxs = np.arange(32)
+        vals = rng.uniform(0, 2, size=32)
+
+        def _inner(tree: SumTree, idxs, vals):
+            tree.update(0, idxs, vals)
+
+        benchmark(_inner, tree, idxs, vals)
+
+    def test_sumtree_sample(self, benchmark):
+        tree = SumTree(100_000, dims=1)
+        rng = np.random.default_rng(0)
+
+        idxs = np.arange(10_000)
+        vals = rng.uniform(0, 2, size=10_000)
+        tree.update(0, idxs, vals)
+
+        def _inner(tree: SumTree, rng):
+            tree.sample(rng, 32)
+
+        benchmark(_inner, tree, rng)
