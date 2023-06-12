@@ -19,6 +19,8 @@ dev = [
     "pre-commit",
     "matplotlib",
     "twine",
+    "pytest>=7.3.2",
+    "pytest-benchmark>=4.0.0",
 ]
 
 [tool.mypy]

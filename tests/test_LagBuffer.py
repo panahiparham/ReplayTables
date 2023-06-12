@@ -1,4 +1,3 @@
-import unittest
 from typing import Any, Optional
 from dataclasses import dataclass
 
@@ -13,7 +12,7 @@ class Experience:
     terminal: bool
 
 
-class TestLagBuffer(unittest.TestCase):
+class TestLagBuffer:
     def test_1_step(self):
         buffer = LagBuffer(1)
 
@@ -34,12 +33,11 @@ class TestLagBuffer(unittest.TestCase):
         )
 
         out = list(buffer.add(exp1))
-        self.assertEqual(out, [])
+        assert out == []
 
         out = list(buffer.add(exp2))
-        self.assertEqual(len(out), 1)
-
-        self.assertEqual(out[0], LaggedExperience(
+        assert len(out) == 1
+        assert out[0] == LaggedExperience(
             s=3,
             a=0,
             r=2.,
@@ -47,7 +45,7 @@ class TestLagBuffer(unittest.TestCase):
             terminal=True,
             sp=4,
             raw=exp1,
-        ))
+        )
 
     def test_3_step(self):
         buffer = LagBuffer(3)
@@ -62,7 +60,7 @@ class TestLagBuffer(unittest.TestCase):
                 terminal=False,
             )
             out = list(buffer.add(exp))
-            self.assertEqual(out, [])
+            assert out == []
 
             experiences.append(exp)
 
@@ -74,8 +72,8 @@ class TestLagBuffer(unittest.TestCase):
             terminal=False,
         )
         out = list(buffer.add(exp))
-        self.assertEqual(len(out), 1)
-        self.assertEqual(out[0], LaggedExperience(
+        assert len(out) == 1
+        assert out[0] == LaggedExperience(
             s=1,
             a=0,
             r=4 + (0.9 * 6) + (0.9 ** 2 * 8),
@@ -83,7 +81,7 @@ class TestLagBuffer(unittest.TestCase):
             terminal=False,
             sp=4,
             raw=experiences[0],
-        ))
+        )
 
         term = Experience(
             s=5,
@@ -94,9 +92,9 @@ class TestLagBuffer(unittest.TestCase):
         )
 
         out = list(buffer.add(term))
-        self.assertEqual(len(out), 3)
+        assert len(out) == 3
 
-        self.assertEqual(out[0], LaggedExperience(
+        assert out[0] == LaggedExperience(
             s=2,
             a=1,
             r=6 + (0.9 * 8) + (0.9 ** 2 * 10),
@@ -104,9 +102,9 @@ class TestLagBuffer(unittest.TestCase):
             terminal=True,
             sp=5,
             raw=experiences[1],
-        ))
+        )
 
-        self.assertEqual(out[1], LaggedExperience(
+        assert out[1] == LaggedExperience(
             s=3,
             a=2,
             r=8 + (0.9 * 10),
@@ -114,9 +112,9 @@ class TestLagBuffer(unittest.TestCase):
             terminal=True,
             sp=5,
             raw=experiences[2],
-        ))
+        )
 
-        self.assertEqual(out[2], LaggedExperience(
+        assert out[2] == LaggedExperience(
             s=4,
             a=22,
             r=10,
@@ -124,7 +122,7 @@ class TestLagBuffer(unittest.TestCase):
             terminal=True,
             sp=5,
             raw=exp,
-        ))
+        )
 
     def test_flush(self):
         buffer = LagBuffer(lag=1)
@@ -137,6 +135,6 @@ class TestLagBuffer(unittest.TestCase):
             terminal=True,
         ))
 
-        self.assertEqual(len(buffer._buffer), 1)
+        assert len(buffer._buffer) == 1
         buffer.flush()
-        self.assertEqual(len(buffer._buffer), 0)
+        assert len(buffer._buffer) == 0
