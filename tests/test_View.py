@@ -1,9 +1,9 @@
-import unittest
+import pytest
 import numpy as np
 
 from ReplayTables.Table import Table, View
 
-class TestView(unittest.TestCase):
+class TestView:
     def test_getAllSequences(self):
         table = Table(7, seed=0, columns=[
             { 'name': 'A', 'shape': 3 },
@@ -19,11 +19,11 @@ class TestView(unittest.TestCase):
 
         A, B, C = view.getAll()
 
-        self.assertEqual(A.shape, (7, 3, 3))
-        self.assertEqual(B.shape, (7, 3, 1))
-        self.assertEqual(C.shape, (7, 3))
+        assert A.shape == (7, 3, 3)
+        assert B.shape == (7, 3, 1)
+        assert C.shape == (7, 3)
 
-        self.assertTrue(np.allclose(C, [
+        assert np.allclose(C, [
             # n_t, n_{t+1}, n_{t+2}
             [13, 14, 15],
             [14, 15, 16],
@@ -34,11 +34,12 @@ class TestView(unittest.TestCase):
             # these are padded with np.nan for floats and 0 for ints (by default, configurable)
             [18, 19, 0 ],
             [19, 0, 0 ],
-        ]))
+        ])
 
         # if we try to add a view to a table that already has data
         # that is undefined behavior and so through an error
-        self.assertRaises(Exception, lambda: View(table, 4))
+        with pytest.raises(Exception):
+            View(table, 4)
 
     def test_customPad(self):
         table = Table(7, seed=0, columns=[
@@ -55,11 +56,11 @@ class TestView(unittest.TestCase):
 
         A, B, C = view.getAll()
 
-        self.assertEqual(A.shape, (7, 3, 3))
-        self.assertEqual(B.shape, (7, 3, 1))
-        self.assertEqual(C.shape, (7, 3))
+        assert A.shape, (7, 3, 3)
+        assert B.shape, (7, 3, 1)
+        assert C.shape, (7, 3)
 
-        self.assertTrue(np.allclose(C, [
+        assert np.allclose(C, [
             [13, 14, 15],
             [14, 15, 16],
             [15, 16, 17],
@@ -67,7 +68,7 @@ class TestView(unittest.TestCase):
             [17, 18, 19],
             [18, 19, -22],
             [19, -22, -22],
-        ]))
+        ])
 
     def test_endSequence(self):
         # if a sequence terminates during the stream
@@ -92,7 +93,7 @@ class TestView(unittest.TestCase):
                 table.endTrajectory()
 
         A, B, C = view3.getAll()
-        self.assertTrue(np.allclose(C, [
+        assert np.allclose(C, [
             [13, 14, 15],
             [14, 15, 0],
             [15, 0, 0],
@@ -100,10 +101,10 @@ class TestView(unittest.TestCase):
             [17, 18, 19],
             [18, 19, 0],
             [19, 0, 0],
-        ]))
+        ])
 
         A, B, C = view5.getAll()
-        self.assertTrue(np.allclose(C, [
+        assert np.allclose(C, [
             [13, 14, 15, 0, 0],
             [14, 15, 0, 0, 0],
             [15, 0, 0, 0, 0],
@@ -111,7 +112,7 @@ class TestView(unittest.TestCase):
             [17, 18, 19, 0, 0],
             [18, 19, 0, 0, 0],
             [19, 0, 0, 0, 0],
-        ]))
+        ])
 
     def test_sample(self):
         table = Table(7, seed=0, columns=[
@@ -137,17 +138,17 @@ class TestView(unittest.TestCase):
         # we collected trajectories of length 3 (i.e. 3-step trajectories)
         # now I want 2 of those trajectories sampled at random
         A, B, C = view3.sample(2)
-        self.assertTrue(np.allclose(C, [
+        assert np.allclose(C, [
             [17, 18, 19],
             [15, 0, 0],
-        ]))
+        ])
 
         A, B, C = view5.sample(3)
-        self.assertTrue(np.allclose(C, [
+        assert np.allclose(C, [
             [15, 0, 0, 0, 0],
             [16, 17, 18, 19, 0],
             [15, 0, 0, 0, 0],
-        ]))
+        ])
 
     def test_getLastComplete(self):
         table = Table(7, seed=0, columns=[
@@ -169,10 +170,10 @@ class TestView(unittest.TestCase):
 
         # this should be the last *complete* trajectory
         A, B, C = view3.getLastComplete()
-        self.assertTrue(np.allclose(C, [17, 18, 19]))
+        assert np.allclose(C, [17, 18, 19])
 
         A, B, C = view5.getLastComplete()
-        self.assertTrue(np.allclose(C, [16, 17, 18, 19, 0]))
+        assert np.allclose(C, [16, 17, 18, 19, 0])
 
         A, B, C = view5.getLastComplete(offset=1)
-        self.assertTrue(np.allclose(C, [17, 18, 19, 0, 0]))
+        assert np.allclose(C, [17, 18, 19, 0, 0])

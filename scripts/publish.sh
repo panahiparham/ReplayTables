@@ -16,7 +16,3 @@ cz bump --no-verify --yes --check-consistency
 
 # push to pypi repository
 pdm build
-python -m twine upload -u __token__ -p ${PYPI_TOKEN} --non-interactive dist/*
-
-git push
-git push --tags

@@ -1,9 +1,8 @@
-import unittest
 import numpy as np
 
 from ReplayTables.Table import Table
 
-class TestTable(unittest.TestCase):
+class TestTable:
     def test_canAddMultipleColumns(self):
         table = Table(3, seed=0, columns=[
             { 'name': 'A', 'shape': 3 },
@@ -19,15 +18,15 @@ class TestTable(unittest.TestCase):
 
         A, B, C = table.getAll()
 
-        self.assertTrue(np.allclose(A, np.array([
+        assert np.allclose(A, [
             [0, 3.3, 6.6],
             [0, 4.4, 8.8],
             [0, 5.5, 11],
-        ])))
+        ])
 
-        self.assertTrue(np.all(B == [[True], [True], [False]]))
+        assert np.all(B == [[True], [True], [False]])
 
-        self.assertTrue(np.allclose(C, [3, 4, 5]))
+        assert np.allclose(C, [3, 4, 5])
 
     def test_canSampleTable(self):
         table = Table(3, seed=1, columns=[
@@ -39,13 +38,13 @@ class TestTable(unittest.TestCase):
             table.addTuple((np.arange(3) * i, i**2))
 
         A, B = table.sample()
-        self.assertTrue(np.allclose(A, [[0, 6, 12]]))
-        self.assertTrue(np.allclose(B, [36]))
+        assert np.allclose(A, [[0, 6, 12]])
+        assert np.allclose(B, [36])
 
         A, B = table.sample(3)
-        self.assertTrue(np.allclose(A, [
+        assert np.allclose(A, [
             [0, 5, 10],
             [0, 6, 12],
             [0, 7, 14],
-        ]))
-        self.assertTrue(np.allclose(B, [25, 36, 49]))
+        ])
+        assert np.allclose(B, [25, 36, 49])
