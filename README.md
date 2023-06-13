@@ -28,7 +28,7 @@ buffer = ReplayBuffer(
 buffer.add(Data(x, a, r))
 
 batch = buffer.sample(32)
-print(batch.x.shape) # -> (d, 32)
+print(batch.x.shape) # -> (32, d)
 print(batch.a.shape) # -> (32, )
 print(batch.r.shape) # -> (32, )
 ```
