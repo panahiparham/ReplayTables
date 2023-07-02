@@ -25,7 +25,7 @@ jobs:
           tool: 'pytest'
           output-file-path: output.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          alert-threshold: '40%'
+          alert-threshold: '130%'
           comment-on-alert: true
           summary-always: true
           fail-on-alert: true
