@@ -36,6 +36,7 @@ class BasicStorage(Storage):
         x = np.stack([self._state_store[idx] for idx in idxs], axis=0)
         xp = np.stack([self._state_store[idx] for idx in n_idxs], axis=0)
 
+        eids: Any = self._eids[idxs]
         r, gamma, term = _return(self._max_size - lag, idxs, lag, self._r, self._term, self._gamma)
         return Batch(
             x=x,
@@ -43,7 +44,7 @@ class BasicStorage(Storage):
             r=r,
             gamma=gamma,
             terminal=term,
-            eid=self._eids[idxs],
+            eid=eids,
             xp=xp,
         )
 

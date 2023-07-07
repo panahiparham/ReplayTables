@@ -44,7 +44,7 @@ class Batch(NamedTuple):
     r: np.ndarray
     gamma: np.ndarray
     terminal: np.ndarray
-    eid: np.ndarray
+    eid: EIDs
     xp: np.ndarray
 
 T = TypeVar('T', bound=Timestep)
