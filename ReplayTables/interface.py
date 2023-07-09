@@ -24,7 +24,7 @@ class Ring(Protocol):
         ...
 
 class Timestep(NamedTuple):
-    x: Any
+    x: Any | None
     a: Any
     r: Ring | None
     gamma: Ring

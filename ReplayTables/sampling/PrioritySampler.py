@@ -2,7 +2,7 @@ import numpy as np
 from typing import Any
 from ReplayTables.sampling.IndexSampler import IndexSampler
 from ReplayTables.Distributions import MixinUniformDistribution, SubDistribution, PrioritizedDistribution, MixtureDistribution
-from ReplayTables.interface import IDX, IDXs
+from ReplayTables.interface import IDX, IDXs, Timestep, Batch
 
 class PrioritySampler(IndexSampler):
     def __init__(
@@ -23,14 +23,20 @@ class PrioritySampler(IndexSampler):
         ])
         self._max = max_size
 
-    def replace(self, idx: IDX, /, **kwargs: Any) -> None:
-        priority: float = kwargs['priority']
+    def replace(self, idx: IDX, transition: Timestep, /, **kwargs: Any) -> None:
         idxs = np.array([idx])
+
+        if transition.terminal:
+            self._uniform.set(idxs, np.zeros(1))
+            self._p_dist.update(idxs, np.zeros(1))
+            return
+
+        priority: float = kwargs['priority']
         priorities = np.array([priority])
         self._uniform.update(idxs)
         self._p_dist.update(idxs, priorities)
 
-    def update(self, idxs: IDXs, /, **kwargs: Any) -> None:
+    def update(self, idxs: IDXs, batch: Batch, /, **kwargs: Any) -> None:
         priorities = kwargs['priorities']
         self._uniform.update(idxs)
         self._p_dist.update(idxs, priorities)

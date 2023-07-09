@@ -23,7 +23,7 @@ class Storage:
         ...
 
     @abstractmethod
-    def set(self, idx: IDX, transition: Timestep):
+    def set(self, idx: IDX, eid: EID, transition: Timestep):
         ...
 
     @abstractmethod

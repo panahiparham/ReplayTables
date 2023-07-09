@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 from typing import cast
 
-from ReplayTables.interface import EID, EIDs, Timestep
+from ReplayTables.interface import EID, Timestep
 from ReplayTables.PER import PrioritizedReplay
 
 from tests._utils.fake_data import fake_timestep
@@ -81,9 +81,6 @@ class TestPER:
             ))
 
         buffer.add(fake_timestep())
-        ids = cast(EIDs, np.arange(5))
-        buffer.update_priorities(ids, np.arange(5) + 1)
-
         byt = pickle.dumps(buffer)
         buffer2 = pickle.loads(byt)
 

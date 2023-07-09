@@ -6,31 +6,45 @@ from ReplayTables.storage.Storage import Storage
 from ReplayTables._utils.jit import try2jit
 
 class BasicStorage(Storage):
-    def __init__(self, max_size: int):
+    def __init__(self, max_size: int, sample_obs: np.ndarray | None = None, action_dtype: Any = np.int_):
         super().__init__(max_size)
 
         self._state_store: Dict[IDX, np.ndarray] = {}
         self._eids = np.zeros(max_size, dtype=np.uint64)
-        # TODO: we should take dtype params to optionally store this as an integer
-        self._a = np.zeros(max_size)
+        self._a = np.zeros(max_size, dtype=action_dtype)
         self._r = np.zeros(max_size)
         self._term = np.zeros(max_size, dtype=np.bool_)
         self._gamma = np.zeros(max_size)
 
+        self._zero_obs: np.ndarray | None = None
+        if sample_obs is not None:
+            self._zero_obs = np.zeros_like(sample_obs)
+
     def add(self, idx: IDX, eid: EID, transition: Timestep, /, **kwargs: Any):
-        self._state_store[idx] = transition.x
+        if transition.x is not None:
+            self._state_store[idx] = transition.x
+        else:
+            assert self._zero_obs is not None, 'Need to specify a default sample observation is terminal states are marked as None'
+            self._state_store[idx] = self._zero_obs
+
         self._r[idx] = transition.r
         self._a[idx] = transition.a
         self._term[idx] = transition.terminal
         self._gamma[idx] = transition.gamma
         self._eids[idx] = eid
 
-    def set(self, idx: IDX, transition: Timestep):
-        self._state_store[idx] = transition.x
+    def set(self, idx: IDX, eid: EID, transition: Timestep):
+        if transition.x is not None:
+            self._state_store[idx] = transition.x
+        else:
+            assert self._zero_obs is not None, 'Need to specify a default sample observation is terminal states are marked as None'
+            self._state_store[idx] = self._zero_obs
+
         self._r[idx] = transition.r
         self._a[idx] = transition.a
         self._term[idx] = transition.terminal
         self._gamma[idx] = transition.gamma
+        self._eids[idx] = eid
 
     def get(self, idxs: IDXs, n_idxs: IDXs, lag: int) -> Batch:
         x = np.stack([self._state_store[idx] for idx in idxs], axis=0)
