@@ -57,7 +57,7 @@ class _SamplableSet:
 
     def sample(self, n: int, rng: np.random.Generator):
         idxs = rng.integers(0, self.length(), size=n)
-        return [self._idx2val[idx] for idx in idxs]
+        return np.array([self._idx2val[idx] for idx in idxs])
 
     def values(self):
         return list(self._idx2val.values())
