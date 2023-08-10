@@ -19,8 +19,8 @@ dev = [
     "pre-commit",
     "matplotlib",
     "twine",
-    "pytest>=7.3.2",
-    "pytest-benchmark>=4.0.1",
+    "pytest~=7.3",
+    "pytest-benchmark~=4.0",
 ]
 
 [tool.mypy]
@@ -34,9 +34,9 @@ authors = [
     {name = "Andy Patterson", email = "andnpatterson@gmail.com"},
 ]
 dependencies = [
-    "numba>=0.57",
-    "numpy>=1.23.5",
-    "scipy>=1.9.3",
+    "numba~=0.57",
+    "numpy~=1.23",
+    "scipy~=1.9",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
