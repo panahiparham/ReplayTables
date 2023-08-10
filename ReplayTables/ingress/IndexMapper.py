@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Any
 from abc import abstractmethod
 from ReplayTables.interface import EID, IDX, EIDs, IDXs
@@ -17,3 +18,11 @@ class IndexMapper:
 
     @abstractmethod
     def eids2idxs(self, eids: EIDs) -> IDXs: ...
+
+    def eids2idxs_sequence(self, start: EIDs, lag: int) -> IDXs:
+        out: Any = np.empty((lag + 1, len(start)), dtype=np.int32)
+        for i in range(lag + 1):
+            n_eids: Any = start + i
+            out[i] = self.eids2idxs(n_eids)
+
+        return out

@@ -15,7 +15,7 @@ class Storage:
         ...
 
     @abstractmethod
-    def get(self, idxs: IDXs, n_idxs: IDXs, lag: int) -> Batch:
+    def get(self, idxs_seqs: IDXs) -> Batch:
         ...
 
     @abstractmethod

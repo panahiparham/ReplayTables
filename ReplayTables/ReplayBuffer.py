@@ -44,18 +44,15 @@ class ReplayBufferInterface:
         idxs = self._sampler.sample(n)
         eids = self._storage.get_eids(idxs)
 
-        n_eids: Any = eids + self._lag
-        n_idxs = self._idx_mapper.eids2idxs(n_eids)
+        idx_seqs = self._idx_mapper.eids2idxs_sequence(eids, self._lag)
 
         weights = self._sampler.isr_weights(idxs)
-        samples = self._storage.get(idxs, n_idxs, self._lag)
+        samples = self._storage.get(idx_seqs)
         return samples, weights
 
     def get(self, eids: EIDs):
-        idxs = self._idx_mapper.eids2idxs(eids)
-        n_eids: Any = eids + self._lag
-        n_idxs = self._idx_mapper.eids2idxs(n_eids)
-        return self._storage.get(idxs, n_idxs, self._lag)
+        idx_seqs = self._idx_mapper.eids2idxs_sequence(eids, self._lag)
+        return self._storage.get(idx_seqs)
 
     def _next_eid(self) -> EID:
         eid: Any = self._t

@@ -13,7 +13,7 @@ class TestReplayBuffer:
         assert buffer.size() == 0
 
         # should be able to simply add and sample a single data point
-        d = fake_timestep(a=1)
+        d = fake_timestep(a=1, r=None)
         buffer.add(d)
         assert buffer.size() == 0
 
@@ -53,6 +53,9 @@ class TestReplayBuffer:
         rng = np.random.default_rng(0)
         buffer = ReplayBuffer(5, 1, rng)
 
+        d = fake_timestep(r=None)
+        buffer.add(d)
+
         for i in range(3):
             d = fake_timestep(r=i)
             buffer.add(d)
@@ -65,7 +68,7 @@ class TestReplayBuffer:
 
         samples, _ = buffer.sample(25)
         assert np.all(samples.x == 0)
-        assert np.all(samples.xp[samples.terminal] == 0)
+        assert np.all(samples.xp[samples.terminal] == 1)
 
     def test_n_step(self):
         rng = np.random.default_rng(0)
@@ -78,14 +81,15 @@ class TestReplayBuffer:
         samples, weights = buffer.sample(1)
         assert np.all(samples.r == 1.99)
 
-        d = fake_timestep(r=2, gamma=0, terminal=True)
+        d = fake_timestep(r=2, gamma=0, terminal=True, x=np.ones(8))
         buffer.add(d)
 
         d = fake_timestep(r=1)
         buffer.add(d)
 
         samples, weights = buffer.sample(10)
-        assert np.all(samples.r == np.array([2.98, 1.99, 1.99, 1.99, 1.99, 1.99, 1.99, 1.99, 1.99, 2.98]))
+        assert np.all(samples.r == np.array([2, 2.98, 2.98, 1.99, 1.99, 1.99, 1.99, 1.99, 1.99, 2]))
+        assert np.all(samples.xp[samples.terminal] == 1)
 
     def test_pickleable(self):
         rng = np.random.default_rng(0)

@@ -46,12 +46,15 @@ class BasicStorage(Storage):
         self._gamma[idx] = transition.gamma
         self._eids[idx] = eid
 
-    def get(self, idxs: IDXs, n_idxs: IDXs, lag: int) -> Batch:
+    def get(self, idx_seqs: IDXs) -> Batch:
+        idxs = idx_seqs[0]
+
+        r, gamma, term, n_idxs = _return(idx_seqs, self._r, self._term, self._gamma)
+
         x = np.stack([self._state_store[idx] for idx in idxs], axis=0)
         xp = np.stack([self._state_store[idx] for idx in n_idxs], axis=0)
 
         eids: Any = self._eids[idxs]
-        r, gamma, term = _return(self._max_size - lag, idxs, lag, self._r, self._term, self._gamma)
         return Batch(
             x=x,
             a=self._a[idxs],
@@ -84,22 +87,25 @@ class BasicStorage(Storage):
         return len(self._state_store)
 
 @try2jit()
-def _return(max_size: int, idxs: np.ndarray, lag: int, r: np.ndarray, term: np.ndarray, gamma: np.ndarray):
-    samples = len(idxs)
+def _return(idx_seqs: np.ndarray, r: np.ndarray, term: np.ndarray, gamma: np.ndarray):
+    lag = idx_seqs.shape[0]
+    samples = idx_seqs.shape[1]
+
     g = np.zeros(samples)
     d = np.ones(samples)
     t = np.zeros(samples, dtype=np.bool_)
+    n_idxs = idx_seqs[-1]
 
     for b in range(samples):
-        idx = idxs[b]
-        for i in range(lag):
-            n_idx = int((idx + i) % max_size)
-            g[b] += d[b] * r[n_idx]
+        for i in range(1, lag):
+            idx = idx_seqs[i, b]
+            g[b] += d[b] * r[idx]
 
-            if term[n_idx]:
+            if term[idx]:
+                n_idxs[b] = idx
                 t[b] = True
                 break
 
-            d[b] *= gamma[n_idx]
+            d[b] *= gamma[idx]
 
-    return g, d, t
+    return g, d, t, n_idxs

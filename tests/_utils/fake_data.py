@@ -2,7 +2,7 @@ import numpy as np
 from ReplayTables.interface import Batch, Timestep
 
 _zero = np.zeros(8)
-def fake_timestep(x: np.ndarray = _zero, a: int = 0, r: float = 0.0, gamma: float = 0.99, terminal: bool = False):
+def fake_timestep(x: np.ndarray = _zero, a: int = 0, r: float | None = 0.0, gamma: float = 0.99, terminal: bool = False):
     return Timestep(
         x=x,
         a=a,
