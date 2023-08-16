@@ -7,24 +7,27 @@ class LagBuffer:
     def __init__(self, lag: int):
         self._lag = lag
         self._max_len = lag + 1
-        self._i = 0
+        self._eid: Any = 0
         self._buffer: Dict[int, Tuple[EID, Timestep]] = {}
         self._r = np.zeros(self._max_len, dtype=np.float_)
         self._g = np.zeros(self._max_len, dtype=np.float_)
 
     def add(self, experience: Timestep):
-        idx = self._i % self._max_len
-        eid: Any = self._i
-        self._buffer[idx] = (eid, experience)
+        idx = self._eid % self._max_len
         self._r[idx] = experience.r
         self._g[idx] = experience.gamma
-        self._i += 1
 
+        eid: Any = self._eid
+        self._eid += 1
+        f_idx = (eid - self._lag) % self._max_len
+        if experience.terminal:
+            self._eid -= 1
+            eid = None
+
+        self._buffer[idx] = (eid, experience)
         out: List[LaggedTimestep] = []
         if len(self._buffer) <= self._lag:
             return out
-
-        f_idx = self._i % self._max_len
 
         f_eid, f = self._buffer[f_idx]
         r, g = _accumulate_return(self._r, self._g, f_idx, self._lag, self._max_len)
@@ -46,9 +49,9 @@ class LagBuffer:
             return out
 
         for i in range(1, self._lag):
-            f_idx = (self._i + i) % self._max_len
-            f_eid, f = self._buffer[f_idx]
-            r, g = _accumulate_return(self._r, self._g, f_idx, self._lag - i, self._max_len)
+            start = f_idx + i
+            f_eid, f = self._buffer[start]
+            r, g = _accumulate_return(self._r, self._g, start, self._lag - i, self._max_len)
 
             assert f.x is not None
             out.append(LaggedTimestep(
@@ -68,6 +71,8 @@ class LagBuffer:
 
     def flush(self):
         self._buffer = {}
+        self._r = np.zeros(self._max_len, dtype=np.float_)
+        self._g = np.zeros(self._max_len, dtype=np.float_)
 
 
 @try2jit()
