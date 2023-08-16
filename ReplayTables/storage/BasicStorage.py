@@ -5,8 +5,6 @@ from typing import Any, Dict
 from ReplayTables.interface import Batch, EIDs, LaggedTimestep, IDX, IDXs
 from ReplayTables.storage.Storage import Storage
 
-from ReplayTables._utils.jit import try2jit
-
 class BasicStorage(Storage):
     def __init__(self, max_size: int):
         super().__init__(max_size)
@@ -124,27 +122,3 @@ class BasicStorage(Storage):
 
     def __len__(self):
         return len(self._extras)
-
-@try2jit()
-def _return(idx_seqs: np.ndarray, r: np.ndarray, term: np.ndarray, gamma: np.ndarray):
-    lag = idx_seqs.shape[0]
-    samples = idx_seqs.shape[1]
-
-    g = np.zeros(samples)
-    d = np.ones(samples)
-    t = np.zeros(samples, dtype=np.bool_)
-    n_idxs = idx_seqs[-1]
-
-    for b in range(samples):
-        for i in range(1, lag):
-            idx = idx_seqs[i, b]
-            g[b] += d[b] * r[idx]
-
-            if term[idx]:
-                n_idxs[b] = idx
-                t[b] = True
-                break
-
-            d[b] *= gamma[idx]
-
-    return g, d, t, n_idxs
