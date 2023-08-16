@@ -1,9 +1,9 @@
 import numpy as np
-from typing import cast, Any, Dict
+from typing import cast, Any, Dict, Hashable
 from ReplayTables.interface import Batch, Timestep, LaggedTimestep, EID
 
 _zero = np.zeros(8)
-def fake_timestep(x: np.ndarray = _zero, a: int = 0, r: float | None = 0.0, gamma: float = 0.99, terminal: bool = False, extra: Dict[str, Any] | None = None):
+def fake_timestep(x: np.ndarray | None = _zero, a: int = 0, r: float | None = 0.0, gamma: float = 0.99, terminal: bool = False, extra: Dict[Hashable, Any] | None = None):
     return Timestep(
         x=x,
         a=a,

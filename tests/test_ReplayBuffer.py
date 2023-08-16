@@ -54,43 +54,37 @@ class TestReplayBuffer:
         rng = np.random.default_rng(0)
         buffer = ReplayBuffer(5, 1, rng)
 
-        d = fake_timestep(r=None)
+        d = fake_timestep(x=np.ones(8), r=None)
         buffer.add_step(d)
 
         for i in range(3):
-            d = fake_timestep(r=i)
+            d = fake_timestep(x=np.ones(8), r=i)
             buffer.add_step(d)
 
-        d = fake_timestep(x=np.ones(8), r=3, terminal=True)
-        buffer.add_step(d)
-
-        d = fake_timestep()
+        d = fake_timestep(x=None, r=3, terminal=True)
         buffer.add_step(d)
 
         samples = buffer.sample(25)
-        assert np.all(samples.x == 0)
-        assert np.all(samples.xp[samples.terminal] == 1)
+        assert np.all(samples.x == 1)
+        assert np.all(samples.xp[samples.terminal] == 0)
 
     def test_n_step(self):
         rng = np.random.default_rng(0)
         buffer = ReplayBuffer(5, 2, rng)
 
-        d = fake_timestep(r=1, gamma=0.99)
+        d = fake_timestep(x=np.ones(8), r=1, gamma=0.99)
         for _ in range(3):
             buffer.add_step(d)
 
         samples = buffer.sample(1)
         assert np.all(samples.r == 1.99)
 
-        d = fake_timestep(r=2, gamma=0, terminal=True, x=np.ones(8))
-        buffer.add_step(d)
-
-        d = fake_timestep(r=1)
+        d = fake_timestep(r=2, gamma=0, terminal=True, x=None)
         buffer.add_step(d)
 
         samples = buffer.sample(10)
         assert np.all(samples.r == np.array([2, 2.98, 2.98, 1.99, 1.99, 1.99, 1.99, 1.99, 1.99, 2]))
-        assert np.all(samples.xp[samples.terminal] == 1)
+        assert np.all(samples.xp[samples.terminal] == 0)
 
     def test_pickleable(self):
         rng = np.random.default_rng(0)
