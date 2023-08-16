@@ -17,7 +17,7 @@ def test_inferred_types1():
         r=1.0,
         gamma=0.99,
         terminal=False,
-        extra=None,
+        extra={},
         n_eid=cast(EID, 34),
         n_x=None,
     )
@@ -45,7 +45,7 @@ def test_inferred_types2():
         r=1.0,
         gamma=0.99,
         terminal=False,
-        extra=None,
+        extra={},
         n_eid=cast(EID, 34),
         n_x=None,
     )
