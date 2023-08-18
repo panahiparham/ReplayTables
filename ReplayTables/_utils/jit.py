@@ -1,6 +1,7 @@
 import logging
-from typing import Any, Callable, TypeVar, Protocol, cast
+import numpy as np
 import numpy.typing as npt
+from typing import Any, Callable, TypeVar, Protocol, cast
 
 _has_warned = False
 T = TypeVar('T', bound=Callable[..., Any])
@@ -22,7 +23,7 @@ def try2jit(fastmath: bool = True, inline: Any = 'never'):
 
 
 class Vectorized(Protocol):
-    def __call__(self, *args: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, *args: npt.ArrayLike) -> np.ndarray:
         ...
 
 def try2vectorize(f: Any) -> Vectorized:

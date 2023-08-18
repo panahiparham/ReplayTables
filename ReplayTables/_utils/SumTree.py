@@ -72,10 +72,10 @@ class SumTree:
         return self._size
 
     def update(self, dim: int, idxs: Iterable[int], values: Iterable[float]):
-        idxs = np.asarray(idxs)
-        values = np.asarray(values)
+        a_idxs = np.asarray(idxs)
+        a_values = np.asarray(values)
 
-        self._writer.write(dim, idxs, values)
+        self._writer.write(dim, a_idxs, a_values)
 
     def get_value(self, dim: int, idx: int) -> float:
         return self._tree[0][dim, idx]

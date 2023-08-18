@@ -1,6 +1,7 @@
 from typing import Any
-from typing import List as List
 from typing import Dict as ODict
+
+List = list
 
 class Dict(ODict):
     @staticmethod
