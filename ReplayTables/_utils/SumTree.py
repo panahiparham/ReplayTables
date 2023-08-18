@@ -14,7 +14,7 @@ def _nearestPowerOf2(x: float):
     return int(2**u)
 
 @try2jit()
-def _update(tree: NList[np.ndarray], dim: int, idxs: np.ndarray, values: np.ndarray):
+def update(tree: NList[np.ndarray], dim: int, idxs: np.ndarray, values: np.ndarray):
     for idx, value in zip(idxs, values):
         sub_idx = idx
         old = tree[0][dim, idx]
@@ -28,7 +28,7 @@ def _bound(x: int, ma: int):
     return min(x, ma)
 
 @try2jit()
-def _query(tree: NList[np.ndarray], size: int, weights: np.ndarray, values: np.ndarray):
+def query(tree: NList[np.ndarray], size: int, weights: np.ndarray, values: np.ndarray) -> np.ndarray:
     totals = np.zeros(len(values))
     idxs = np.zeros(len(values), dtype=np.int64)
     for i in range(len(tree) - 2, -1, -1):
@@ -71,6 +71,10 @@ class SumTree:
     def size(self):
         return self._size
 
+    @property
+    def raw(self):
+        return self._tree
+
     def update(self, dim: int, idxs: Iterable[int], values: Iterable[float]):
         a_idxs = np.asarray(idxs)
         a_values = np.asarray(values)
@@ -103,7 +107,7 @@ class SumTree:
         assert t > 0, "Cannot sample when the tree is empty or contains negative values"
 
         rs = rng.uniform(0, t, size=n)
-        return _query(self._tree, self._size, w_, rs)
+        return query(self._tree, self._size, w_, rs)
 
     def sync(self):
         self._writer.sync()
