@@ -20,7 +20,7 @@ class BasicStorage(Storage):
         self._gamma = np.empty(max_size, dtype=np.float_)
 
         # building dummy values here for type inference
-        self._state_store = np.empty(0)
+        self._state_store: Any = np.empty(0)
         self._a = np.zeros(0)
 
     def _deferred_init(self, transition: LaggedTimestep):
@@ -40,7 +40,7 @@ class BasicStorage(Storage):
         old_eid = self._eids[idx]
         if transition.eid == 0 or old_eid != transition.eid:
             self._eids[idx] = transition.eid
-            self._state_store[idx] = transition.x
+            self._store_state(idx, transition.x)
 
         self._r[idx] = transition.r
         self._a[idx] = transition.a
@@ -54,14 +54,14 @@ class BasicStorage(Storage):
 
             self._idx2n_idx[idx] = n_idx
             self._eids[n_idx] = transition.n_eid
-            self._state_store[n_idx] = transition.n_x
+            self._store_state(n_idx, transition.n_x)
         else:
             self._idx2n_idx[idx] = self._max_size
 
     def set(self, idx: IDX, n_idx: IDX | None, transition: LaggedTimestep):
         if not self._built: self._deferred_init(transition)
 
-        self._state_store[idx] = transition.x
+        self._store_state(idx, transition.x)
         self._eids[idx] = transition.eid
         self._r[idx] = transition.r
         self._a[idx] = transition.a
@@ -75,7 +75,7 @@ class BasicStorage(Storage):
 
             self._idx2n_idx[idx] = n_idx
             self._eids[n_idx] = transition.n_eid
-            self._state_store[n_idx] = transition.n_x
+            self._store_state(n_idx, transition.n_x)
         else:
             self._idx2n_idx[idx] = self._max_size
 
@@ -83,8 +83,8 @@ class BasicStorage(Storage):
         eids: Any = self._eids[idxs]
         n_idxs = self._idx2n_idx[idxs]
 
-        x = self._state_store[idxs]
-        xp = self._state_store[n_idxs]
+        x = self._load_states(idxs)
+        xp = self._load_states(n_idxs)
 
         return Batch(
             x=x,
@@ -102,7 +102,7 @@ class BasicStorage(Storage):
         n_eid: Any = None if n_idx == self._max_size else self._eids[n_idx]
 
         return LaggedTimestep(
-            x=self._state_store[idx],
+            x=self._load_state(idx),
             a=self._a[idx],
             r=self._r[idx],
             gamma=self._gamma[idx],
@@ -110,7 +110,7 @@ class BasicStorage(Storage):
             eid=eid,
             extra=self._extras[idx],
             n_eid=n_eid,
-            n_x=self._state_store[n_idx],
+            n_x=self._load_state(n_idx),
         )
 
     def get_eids(self, idxs: IDXs) -> EIDs:
@@ -122,3 +122,12 @@ class BasicStorage(Storage):
 
     def __len__(self):
         return len(self._extras)
+
+    def _store_state(self, idx: IDX, state: np.ndarray):
+        self._state_store[idx] = state
+
+    def _load_states(self, idxs: np.ndarray) -> np.ndarray:
+        return self._state_store[idxs]
+
+    def _load_state(self, idx: int) -> np.ndarray:
+        return self._state_store[idx]
