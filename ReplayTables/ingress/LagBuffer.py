@@ -49,7 +49,7 @@ class LagBuffer:
             return out
 
         for i in range(1, self._lag):
-            start = f_idx + i
+            start = (f_idx + i) % self._max_len
             f_eid, f = self._buffer[start]
             r, g = _accumulate_return(self._r, self._g, start, self._lag - i, self._max_len)
 
