@@ -5,11 +5,13 @@ from typing import Type
 from ReplayTables.interface import Timestep
 
 from ReplayTables.ReplayBuffer import ReplayBuffer
+from ReplayTables.BackwardsReplay import BackwardsReplay
 from ReplayTables.PER import PrioritizedReplay
 from ReplayTables.PSER import PrioritizedSequenceReplay
 
 BUFFERS = [
     ReplayBuffer,
+    BackwardsReplay,
     PrioritizedReplay,
     PrioritizedSequenceReplay,
 ]
