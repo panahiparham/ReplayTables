@@ -26,7 +26,7 @@ class PrioritySequenceSampler(PrioritySampler):
         self._size = 0
 
     def replace(self, idx: IDX, transition: LaggedTimestep, /, **kwargs: Any) -> None:
-        self._size = max(idx, self._size)
+        self._size = max(idx + 1, self._size)
         self._terminal.discard(idx)
         if transition.terminal:
             self._terminal.add(idx)
