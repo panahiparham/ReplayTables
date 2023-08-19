@@ -4,6 +4,7 @@ import numpy as np
 from typing import cast, Any, Type
 from ReplayTables.storage.BasicStorage import Storage, BasicStorage
 from ReplayTables.storage.CompressedStorage import CompressedStorage
+from ReplayTables.storage.NonArrayStorage import NonArrayStorage
 from ReplayTables.interface import IDX, IDXs
 
 from tests._utils.fake_data import fake_lagged_timestep
@@ -11,7 +12,8 @@ from tests._utils.fake_data import fake_lagged_timestep
 
 STORAGES = [
     BasicStorage,
-    CompressedStorage
+    CompressedStorage,
+    NonArrayStorage,
 ]
 
 @pytest.mark.parametrize('Store', STORAGES)
