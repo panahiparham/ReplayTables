@@ -1,10 +1,14 @@
 import logging
+import warnings
 import numpy as np
 import numpy.typing as npt
 from typing import Any, Callable, TypeVar, Protocol, cast
+from numba.core.errors import NumbaPendingDeprecationWarning
 
 _has_warned = False
 T = TypeVar('T', bound=Callable[..., Any])
+
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
 def try2jit(fastmath: bool = True, inline: Any = 'never'):
     def _inner(f: T) -> T:
