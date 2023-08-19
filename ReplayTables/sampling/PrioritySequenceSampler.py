@@ -12,6 +12,7 @@ class PrioritySequenceSampler(PrioritySampler):
         uniform_probability: float,
         trace_decay: float,
         trace_depth: int,
+        combinator: str,
         max_size: int,
         rng: np.random.Generator,
     ) -> None:
@@ -22,6 +23,8 @@ class PrioritySequenceSampler(PrioritySampler):
         # so add a dummy value to the set
         self._terminal.add(-1)
 
+        assert combinator in ['max', 'sum']
+        self._combinator = combinator
         self._trace = np.cumprod(np.ones(trace_depth) * trace_decay)
         self._size = 0
 
@@ -46,6 +49,7 @@ class PrioritySequenceSampler(PrioritySampler):
             self._size,
             idxs,
             priorities,
+            self._combinator,
             self._trace,
             self._terminal,
         )
@@ -53,10 +57,15 @@ class PrioritySequenceSampler(PrioritySampler):
 
 
 @try2jit()
-def _update(tree: NList[np.ndarray], d: int, size: int, idxs: np.ndarray, priorities: np.ndarray, trace: np.ndarray, terms: Set[int]):
+def _update(tree: NList[np.ndarray], d: int, size: int, idxs: np.ndarray, priorities: np.ndarray, comb: str, trace: np.ndarray, terms: Set[int]):
     depth = len(trace)
     out_idxs = np.empty(depth * len(idxs), dtype=np.uint64)
     out = np.empty(depth * len(idxs))
+
+    def c(a: float, b: float):
+        if comb == 'sum':
+            return a + b
+        return max(a, b)
 
     j = 0
     for idx, v in zip(idxs, priorities):
@@ -65,7 +74,7 @@ def _update(tree: NList[np.ndarray], d: int, size: int, idxs: np.ndarray, priori
             if s_idx in terms: break
 
             prior = tree[0][d, s_idx]
-            new = max(prior, trace[i] * v)
+            new = c(prior, trace[i] * v)
 
             out_idxs[j] = s_idx
             out[j] = new

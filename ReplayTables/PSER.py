@@ -8,6 +8,7 @@ from ReplayTables.sampling.PrioritySequenceSampler import PrioritySequenceSample
 class PSERConfig(PERConfig):
     trace_decay: float = 0.9
     trace_depth: int = 5
+    combinator: str = 'sum'
 
 class PrioritizedSequenceReplay(PrioritizedReplay):
     def __init__(self, max_size: int, lag: int, rng: np.random.Generator, config: Optional[PSERConfig] = None):
@@ -18,6 +19,7 @@ class PrioritizedSequenceReplay(PrioritizedReplay):
             self._c.uniform_probability,
             self._c.trace_decay,
             self._c.trace_depth,
+            self._c.combinator,
             max_size,
             self._rng,
         )
