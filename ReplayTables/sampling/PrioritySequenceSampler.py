@@ -61,10 +61,7 @@ def _update(tree: NList[np.ndarray], d: int, size: int, idxs: np.ndarray, priori
     j = 0
     for idx, v in zip(idxs, priorities):
         for i in range(depth):
-            s_idx = idx - (i + 1)
-            if s_idx < 0:
-                s_idx = size - 1
-
+            s_idx = (idx - (i + 1)) % size
             if s_idx in terms: break
 
             prior = tree[0][d, s_idx]
