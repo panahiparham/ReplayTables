@@ -41,7 +41,7 @@ class PrioritizedDistribution(Distribution):
         self._dim: Optional[int] = None
 
         self._weights: Optional[np.ndarray] = None
-        self._config = config
+        self._c = config
 
     @property
     def tree(self):
