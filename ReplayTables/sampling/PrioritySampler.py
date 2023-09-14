@@ -21,7 +21,7 @@ class PrioritySampler(IndexSampler):
             SubDistribution(d=self._p_dist, p=1 - uniform_probability),
             SubDistribution(d=self._uniform, p=uniform_probability)
         ])
-        self._max = max_size
+        self._size = max_size
 
     def replace(self, idx: IDX, transition: LaggedTimestep, /, **kwargs: Any) -> None:
         idxs = np.array([idx])

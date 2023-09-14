@@ -1,6 +1,6 @@
 import numpy as np
 from typing import cast, Any, Dict, Hashable
-from ReplayTables.interface import Batch, Timestep, LaggedTimestep, EID
+from ReplayTables.interface import Batch, Timestep, LaggedTimestep, EID, XID
 
 _zero = np.zeros(8)
 def fake_timestep(x: np.ndarray | None = _zero, a: int = 0, r: float | None = 0.0, gamma: float = 0.99, terminal: bool = False, extra: Dict[Hashable, Any] | None = None):
@@ -39,12 +39,13 @@ def fake_lagged_timestep(
 ):
     return LaggedTimestep(
         eid=cast(EID, eid),
+        xid=cast(XID, eid),
         x=x,
         a=a,
         r=r,
         gamma=gamma,
         terminal=terminal,
         extra=extra,
-        n_eid=cast(EID, n_eid),
+        n_xid=cast(XID, n_eid),
         n_x=n_x,
     )

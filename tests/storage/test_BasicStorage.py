@@ -1,7 +1,7 @@
 import numpy as np
 from typing import cast
 from ReplayTables.storage.BasicStorage import BasicStorage
-from ReplayTables.interface import LaggedTimestep, EID
+from ReplayTables.interface import LaggedTimestep, EID, XID
 
 def test_inferred_types1():
     storage = BasicStorage(10)
@@ -11,13 +11,14 @@ def test_inferred_types1():
 
     d = LaggedTimestep(
         eid=cast(EID, 32),
+        xid=cast(XID, 0),
         x=x,
         a=a,
         r=1.0,
         gamma=0.99,
         terminal=False,
         extra={},
-        n_eid=None,
+        n_xid=None,
         n_x=None,
     )
 
@@ -35,13 +36,14 @@ def test_inferred_types2():
 
     d = LaggedTimestep(
         eid=cast(EID, 32),
+        xid=cast(XID, 0),
         x=x,
         a=a,
         r=1.0,
         gamma=0.99,
         terminal=False,
         extra={},
-        n_eid=None,
+        n_xid=None,
         n_x=None,
     )
 

@@ -31,10 +31,10 @@ class PrioritySequenceSampler(PrioritySampler):
             trace_depth=trace_depth,
             combinator=combinator,
         )
-        self._p_dist = PrioritizedSequenceDistribution(seq_config)
+        self._ps_dist = PrioritizedSequenceDistribution(seq_config)
 
         self._dist = MixtureDistribution(max_size, dists=[
-            SubDistribution(d=self._p_dist, p=1 - uniform_probability),
+            SubDistribution(d=self._ps_dist, p=1 - uniform_probability),
             SubDistribution(d=self._uniform, p=uniform_probability)
         ])
 
@@ -50,7 +50,7 @@ class PrioritySequenceSampler(PrioritySampler):
         priorities = kwargs['priorities']
         self._uniform.update(idxs)
 
-        self._p_dist.update(idxs, priorities, terminal=self._terminal)
+        self._ps_dist.update_seq(idxs, priorities, terminal=self._terminal)
 
 
 @dataclass
@@ -72,7 +72,7 @@ class PrioritizedSequenceDistribution(PrioritizedDistribution):
         # pre-compute and cache this
         self._trace = np.cumprod(np.ones(self._c.trace_depth) * self._c.trace_decay)
 
-    def update(self, idxs: IDXs, priorities: np.ndarray, terminal: Set[int]):
+    def update_seq(self, idxs: IDXs, priorities: np.ndarray, terminal: Set[int]):
         self._actual_size = max(self._actual_size, idxs.max())
 
         u_idx, u_priorities = _update(

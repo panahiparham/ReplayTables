@@ -5,6 +5,7 @@ IDX = NewType('IDX', int)
 IDXs = NewType('IDXs', np.ndarray)
 EID = NewType('EID', int)
 EIDs = NewType('EIDs', np.ndarray)
+XID = NewType('XID', int)
 
 class Addable(Protocol):
     def __add__(self, other: Any, /) -> Any:
@@ -33,13 +34,14 @@ class Timestep(NamedTuple):
 
 class LaggedTimestep(NamedTuple):
     eid: EID
+    xid: XID
     x: np.ndarray
     a: Any
     r: Ring
     gamma: Ring
     terminal: bool
     extra: Dict[Hashable, Any]
-    n_eid: EID | None
+    n_xid: XID | None
     n_x: np.ndarray | None
 
 class Batch(NamedTuple):

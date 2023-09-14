@@ -5,7 +5,7 @@ import ReplayTables._utils.numpy as npu
 from typing import Dict
 from concurrent.futures import ThreadPoolExecutor, Future
 
-from ReplayTables.interface import IDX, LaggedTimestep
+from ReplayTables.interface import LaggedTimestep
 from ReplayTables.storage.BasicStorage import BasicStorage
 
 class CompressedStorage(BasicStorage):
@@ -24,14 +24,14 @@ class CompressedStorage(BasicStorage):
         zero_x = np.zeros(shape, dtype=self._dtype)
         self._a = np.empty(self._max_size, dtype=npu.get_dtype(transition.a))
 
-        self._state_store[self._max_size] = lz4.frame.compress(zero_x)
+        self._state_store[-1] = lz4.frame.compress(zero_x)
 
     def _wait(self, idx: int):
         if idx in self._locks:
             self._locks[idx].result()
             del self._locks[idx]
 
-    def _store_state(self, idx: IDX, state: np.ndarray):
+    def _store_state(self, idx: int, state: np.ndarray):
         def _inner(data):
             self._state_store[idx] = lz4.frame.compress(data)
 
