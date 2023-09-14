@@ -124,9 +124,16 @@ class BasicStorage(Storage):
         idx = self._idx_mapper.eid2idx(eid)
 
         xid = self._xids[idx]
-        nxid = self._nxids[idx]
         s_idx = self._ref.load_state(xid)
-        ns_idx = self._ref.load_state(nxid)
+
+        n_x = None
+
+        nxid = self._nxids[idx]
+        if nxid < self._max_i:
+            ns_idx = self._ref.load_state(nxid)
+            n_x = self._load_state(ns_idx)
+        else:
+            nxid = None
 
         return LaggedTimestep(
             x=self._load_state(s_idx),
@@ -138,7 +145,7 @@ class BasicStorage(Storage):
             xid=xid,
             extra=self._extras[idx],
             n_xid=nxid,
-            n_x=self._load_state(ns_idx),
+            n_x=n_x,
         )
 
     def get_eids(self, idxs: IDXs) -> EIDs:
@@ -161,7 +168,7 @@ class BasicStorage(Storage):
         cur_size = self._state_store.shape[0] - 1
         if idx >= cur_size:
             new_shape = (cur_size + 5, ) + self._state_store.shape[1:]
-            self._state_store.resize(new_shape)
+            self._state_store = np.resize(self._state_store, new_shape)
             self._state_store[-1] = 0
 
         self._state_store[idx] = state

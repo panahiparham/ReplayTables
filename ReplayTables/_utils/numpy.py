@@ -7,4 +7,5 @@ def get_dtype(v: Any):
     elif isinstance(v, float):
         return np.float_
 
-    raise Exception()
+    v = np.asarray(v)
+    return v.dtype
