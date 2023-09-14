@@ -73,7 +73,7 @@ class PrioritizedSequenceDistribution(PrioritizedDistribution):
         self._trace = np.cumprod(np.ones(self._c.trace_depth) * self._c.trace_decay)
 
     def update_seq(self, idxs: IDXs, priorities: np.ndarray, terminal: Set[int]):
-        self._actual_size = max(self._actual_size, idxs.max())
+        self._actual_size = max(self._actual_size, idxs.max() + 1)
 
         u_idx, u_priorities = _update(
             self.tree.raw,
