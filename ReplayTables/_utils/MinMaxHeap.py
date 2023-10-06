@@ -31,16 +31,13 @@ class MinMaxHeap:
 
     def update(self, priority: float, idx: int):
         i = self._heap[2][idx]
-        p = self._heap[0][i]
+        _delete(self._heap, i, self._size - 1)
 
-        self._heap[0][i] = priority
-        self._heap[1][i] = idx
-        self._heap[2][idx] = i
+        self._heap[0][self._size - 1] = priority
+        self._heap[1][self._size - 1] = idx
+        self._heap[2][idx] = self._size - 1
 
-        if priority > p:
-            _push_down(self._heap, 1, self._size)
-        else:
-            _push_up(self._heap, i)
+        self._heap = _push_up(self._heap, self._size - 1)
 
     def size(self):
         return self._size
