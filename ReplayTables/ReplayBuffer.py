@@ -11,14 +11,21 @@ from ReplayTables.storage.BasicStorage import BasicStorage
 from ReplayTables.storage.Storage import Storage
 
 class ReplayBufferInterface:
-    def __init__(self, max_size: int, rng: np.random.Generator):
+    def __init__(
+        self,
+        max_size: int,
+        rng: np.random.Generator,
+        idx_mapper: IndexMapper | None = None,
+        storage: Storage | None = None,
+        sampler: IndexSampler | None = None,
+    ):
         self._max_size = max_size
         self._rng = rng
 
         self._t = 0
-        self._idx_mapper: IndexMapper = CircularMapper(max_size)
-        self._storage: Storage = BasicStorage(max_size)
-        self._sampler: IndexSampler = UniformSampler(self._rng, self._storage, self._idx_mapper)
+        self._idx_mapper: IndexMapper = idx_mapper or CircularMapper(max_size)
+        self._storage: Storage = storage or BasicStorage(max_size)
+        self._sampler: IndexSampler = sampler or UniformSampler(self._rng, self._storage, self._idx_mapper)
 
     def size(self) -> int:
         return max(0, len(self._storage))
