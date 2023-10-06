@@ -4,15 +4,15 @@ from dataclasses import dataclass
 from typing import Any, Set
 from numba.typed import List as NList
 
-from ReplayTables.Distributions import PrioritizedDistribution, SubDistribution, MixtureDistribution
-from ReplayTables.sampling.PrioritySampler import PrioritySampler
+from ReplayTables.Distributions import PrioritizedDistribution, SubDistribution, MixtureDistribution, MixinUniformDistribution
+from ReplayTables.sampling.IndexSampler import IndexSampler
 from ReplayTables.storage.Storage import Storage
 from ReplayTables.ingress.IndexMapper import IndexMapper
 from ReplayTables.interface import IDX, Batch, IDXs, EIDs, LaggedTimestep
 from ReplayTables._utils.jit import try2jit
 from ReplayTables.sampling.tools import back_sequence
 
-class PrioritySequenceSampler(PrioritySampler):
+class PrioritySequenceSampler(IndexSampler):
     def __init__(
         self,
         rng: np.random.Generator,
@@ -23,7 +23,9 @@ class PrioritySequenceSampler(PrioritySampler):
         trace_depth: int,
         combinator: str,
     ) -> None:
-        super().__init__(rng, storage, mapper, uniform_probability)
+        super().__init__(rng, storage, mapper)
+
+        self._target.update(self._max_size)
 
         self._terminal = set[int]()
         # numba needs help with type inference
@@ -37,6 +39,7 @@ class PrioritySequenceSampler(PrioritySampler):
         )
         self._ps_dist = PrioritizedSequenceDistribution(seq_config, self._storage, self._mapper)
 
+        self._uniform = MixinUniformDistribution()
         self._dist = MixtureDistribution(self._max_size, dists=[
             SubDistribution(d=self._ps_dist, p=1 - uniform_probability),
             SubDistribution(d=self._uniform, p=uniform_probability)
@@ -47,7 +50,9 @@ class PrioritySequenceSampler(PrioritySampler):
         if transition.terminal:
             self._terminal.add(idx)
 
-        return super().replace(idx, transition, **kwargs)
+        priority: float = kwargs['priority']
+        self._uniform.update_single(idx)
+        self._ps_dist.update_single(idx, priority)
 
     def update(self, idxs: IDXs, batch: Batch, /, **kwargs: Any) -> None:
         priorities = kwargs['priorities']
@@ -55,6 +60,22 @@ class PrioritySequenceSampler(PrioritySampler):
 
         self._ps_dist.update_seq(batch.eid, idxs, priorities, terminal=self._terminal)
 
+    def isr_weights(self, idxs: IDXs):
+        return self._dist.isr(self._target, idxs)
+
+    def sample(self, n: int) -> IDXs:
+        idxs: Any = self._dist.sample(self._rng, n)
+        return idxs
+
+    def mask_sample(self, idx: IDX):
+        idxs = np.array([idx], dtype=np.uint64)
+        zero = np.zeros(1)
+
+        self._ps_dist.update(idxs, zero)
+        self._uniform.set(idxs, zero)
+
+    def total_priority(self):
+        return self._ps_dist.tree.dim_total(self._ps_dist.dim)
 
 @dataclass
 class PSDistributionConfig:
