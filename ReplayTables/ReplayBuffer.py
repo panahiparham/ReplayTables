@@ -67,8 +67,17 @@ class ReplayBufferInterface:
     def _on_add(self, item: Item, transition: LaggedTimestep): ...
 
 class ReplayBuffer(ReplayBufferInterface):
-    def __init__(self, max_size: int, lag: int, rng: np.random.Generator):
-        super().__init__(max_size, rng)
+    def __init__(
+            self,
+            max_size: int,
+            lag: int,
+            rng: np.random.Generator,
+            idx_mapper: IndexMapper | None = None,
+            storage: Storage | None = None,
+            sampler: IndexSampler | None = None,
+    ):
+
+        super().__init__(max_size, rng, idx_mapper=idx_mapper, sampler=sampler, storage=storage)
         self._lag_buffer = LagBuffer(lag)
 
     def add_step(self, transition: Timestep):

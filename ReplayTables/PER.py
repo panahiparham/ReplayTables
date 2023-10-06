@@ -4,6 +4,8 @@ from typing import Optional
 from ReplayTables.interface import EID, LaggedTimestep, Batch, Item
 from ReplayTables.ReplayBuffer import ReplayBuffer
 from ReplayTables.sampling.PrioritySampler import PrioritySampler
+from ReplayTables.ingress.IndexMapper import IndexMapper
+from ReplayTables.storage.Storage import Storage
 
 @dataclass
 class PERConfig:
@@ -19,8 +21,10 @@ class PrioritizedReplay(ReplayBuffer):
         lag: int,
         rng: np.random.Generator,
         config: Optional[PERConfig] = None,
+        idx_mapper: IndexMapper | None = None,
+        storage: Storage | None = None,
     ):
-        super().__init__(max_size, lag, rng)
+        super().__init__(max_size, lag, rng, idx_mapper=idx_mapper, storage=storage)
 
         self._c = config or PERConfig()
         self._sampler: PrioritySampler = PrioritySampler(
