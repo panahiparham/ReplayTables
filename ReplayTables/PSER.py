@@ -1,8 +1,12 @@
 import numpy as np
 from dataclasses import dataclass
 from typing import Optional
-from ReplayTables.PER import PrioritizedReplay, PERConfig
+from ReplayTables.interface import Batch, Item, LaggedTimestep, EID
+from ReplayTables.ReplayBuffer import ReplayBuffer
+from ReplayTables.PER import PERConfig
 from ReplayTables.sampling.PrioritySequenceSampler import PrioritySequenceSampler
+from ReplayTables.ingress.IndexMapper import IndexMapper
+from ReplayTables.storage.Storage import Storage
 
 @dataclass
 class PSERConfig(PERConfig):
@@ -10,9 +14,17 @@ class PSERConfig(PERConfig):
     trace_depth: int = 5
     combinator: str = 'sum'
 
-class PrioritizedSequenceReplay(PrioritizedReplay):
-    def __init__(self, max_size: int, lag: int, rng: np.random.Generator, config: Optional[PSERConfig] = None):
-        super().__init__(max_size, lag, rng)
+class PrioritizedSequenceReplay(ReplayBuffer):
+    def __init__(
+        self,
+        max_size: int,
+        lag: int,
+        rng: np.random.Generator,
+        config: Optional[PSERConfig] = None,
+        idx_mapper: IndexMapper | None = None,
+        storage: Storage | None = None,
+    ):
+        super().__init__(max_size, lag, rng, idx_mapper=idx_mapper, storage=storage)
 
         self._c = config or PSERConfig()
         self._sampler: PrioritySequenceSampler = PrioritySequenceSampler(
@@ -24,3 +36,35 @@ class PrioritizedSequenceReplay(PrioritizedReplay):
             self._c.trace_depth,
             self._c.combinator,
         )
+
+        self._max_priority = 1e-16
+
+    def _on_add(self, item: Item, transition: LaggedTimestep):
+        if transition.extra is not None and 'priority' in transition.extra:
+            priority = transition.extra['priority']
+        elif self._c.new_priority_mode == 'max':
+            priority = self._max_priority
+        elif self._c.new_priority_mode == 'mean':
+            total_priority = self._sampler.total_priority()
+            priority = total_priority / self.size()
+            if priority == 0:
+                priority = 1e-16
+        else:
+            raise NotImplementedError()
+
+        self._sampler.replace(item.idx, transition, priority=priority)
+
+    def update_priorities(self, batch: Batch, priorities: np.ndarray):
+        idxs = self._idx_mapper.eids2idxs(batch.eid)
+
+        priorities = priorities ** self._c.priority_exponent
+        self._sampler.update(idxs, batch, priorities=priorities)
+
+        self._max_priority = max(
+            self._c.max_decay * self._max_priority,
+            priorities.max(),
+        )
+
+    def delete_sample(self, eid: EID):
+        idx = self._idx_mapper.eid2idx(eid)
+        self._sampler.mask_sample(idx)
