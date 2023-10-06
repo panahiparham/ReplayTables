@@ -16,9 +16,6 @@ class IndexMapper:
     def add_eid(self, eid: EID, /, **kwargs: Any) -> IDX: ...
 
     @abstractmethod
-    def remove_eid(self, eid: EID) -> IDX: ...
-
-    @abstractmethod
     def eid2idx(self, eid: EID) -> IDX: ...
 
     @abstractmethod

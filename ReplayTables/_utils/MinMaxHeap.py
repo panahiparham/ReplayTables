@@ -1,61 +1,70 @@
 import numpy as np
 
-from typing import Dict, Generic, TypeVar, Tuple
+from typing import Tuple
 from ReplayTables._utils.jit import try2jit
 
-_HEAP = Tuple[np.ndarray, np.ndarray]
+_HEAP = Tuple[np.ndarray, np.ndarray, np.ndarray]
 
-T = TypeVar('T')
-class MinMaxHeap(Generic[T]):
+class MinMaxHeap:
     def __init__(self) -> None:
         super().__init__()
 
-        self._t = 0
-        self._i = np.array(0, dtype=np.uint32)
-        self._storage: Dict[int, T] = {}
-
+        self._size = 0
         self._heap: _HEAP = (
             # actual heap values
             np.zeros(4),
             # storage pointers
             np.zeros(4, dtype=np.uint32),
+            # back-references
+            np.zeros(4, dtype=np.uint32),
         )
 
-    def add(self, priority: float, item: T):
+    def add(self, priority: float, idx: int):
+        self._size = max(self._size, idx + 1)
         self._extend()
 
-        self._heap[0][self._t] = priority
-        self._heap[1][self._t] = self._i
-        self._storage[self._i.item()] = item
+        self._heap[0][idx] = priority
+        self._heap[1][idx] = idx
+        self._heap[2][idx] = idx
 
-        self._heap = _push_up(self._heap, self._t)
+        self._heap = _push_up(self._heap, idx)
 
-        self._t += 1
-        self._i += np.array(1, dtype=np.uint32)
+    def update(self, priority: float, idx: int):
+        i = self._heap[2][idx]
+        p = self._heap[0][i]
+
+        self._heap[0][i] = priority
+        self._heap[1][i] = idx
+        self._heap[2][idx] = i
+
+        if priority > p:
+            _push_down(self._heap, 1, self._size)
+        else:
+            _push_up(self._heap, i)
 
     def size(self):
-        return self._t
+        return self._size
 
     def _extend(self):
-        if self._t == self._heap[0].size:
+        if self._size >= self._heap[0].size:
             self._heap = _extend(self._heap)
 
-    def _get(self, i: int):
+    def _get(self, i: int) -> Tuple[float, int]:
         p = self._heap[0][i]
         idx = self._heap[1][i]
 
-        return p, self._storage[idx]
+        return p, idx
 
-    def min(self):
+    def min(self) -> Tuple[float, int]:
         return self._get(0)
 
     def _max_i(self):
-        p, _ = self._heap
+        p, _, _ = self._heap
 
-        if self._t == 1:
+        if self._size == 1:
             return 0
 
-        if self._t == 2:
+        if self._size == 2:
             return 1
 
         if p[1] > p[2]:
@@ -63,55 +72,58 @@ class MinMaxHeap(Generic[T]):
 
         return 2
 
-    def max(self):
+    def max(self) -> Tuple[float, int]:
         i = self._max_i()
         return self._get(i)
 
-    def pop_min(self):
+    def pop_min(self) -> Tuple[float, int]:
         p = self._heap[0][0]
         idx = self._heap[1][0]
-        v = self._storage[idx]
         self._replace_with_last(0)
 
-        del self._storage[idx]
-        return p, v
+        return p, idx
 
-    def pop_max(self):
+    def pop_max(self) -> Tuple[float, int]:
         i = self._max_i()
 
         p = self._heap[0][i]
         idx = self._heap[1][i]
 
-        v = self._storage[idx]
         self._replace_with_last(i)
 
-        del self._storage[idx]
-        return p, v
+        return p, idx
 
     def _replace_with_last(self, i: int):
-        self._t -= 1
-        self._heap = _delete(self._heap, i, self._t)
+        self._size -= 1
+        self._heap = _delete(self._heap, i, self._size)
 
 
 @try2jit()
 def _extend(heap: _HEAP) -> _HEAP:
-    data, idxs = heap
+    data, idxs, iidxs = heap
     ext_data = np.zeros_like(data)
     ext_idxs = np.zeros_like(idxs)
+    ext_iidxs = np.zeros_like(iidxs)
 
     return (
         np.concatenate((data, ext_data)),
         np.concatenate((idxs, ext_idxs)),
+        np.concatenate((iidxs, ext_iidxs)),
     )
 
 @try2jit()
 def swap(h: _HEAP, i: int, j: int):
     v = h[0][i]
-    idx = h[1][i]
+    i_idx = h[1][i]
+    j_idx = h[1][j]
+
     h[0][i] = h[0][j]
-    h[1][i] = h[1][j]
+    h[1][i] = j_idx
+    h[2][j_idx] = i
+
     h[0][j] = v
-    h[1][j] = idx
+    h[1][j] = i_idx
+    h[2][i_idx] = j
     return h
 
 @try2jit(inline='always')
@@ -145,6 +157,7 @@ def _delete(h: _HEAP, i: int, size: int):
     # do the replacement
     h[0][i] = h[0][size]
     h[1][i] = h[1][size]
+    h[2][h[1][i]] = i
 
     # wipe away residual
     h[0][size] = 0

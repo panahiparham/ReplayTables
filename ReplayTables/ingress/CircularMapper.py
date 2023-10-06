@@ -21,10 +21,6 @@ class CircularMapper(IndexMapper):
         self._max_eid = max(eid, self._max_eid)
         return self.eid2idx(eid)
 
-    def remove_eid(self, eid: EID) -> IDX:
-        self._size = max(0, self._size - 1)
-        return self.eid2idx(eid)
-
     def has_eids(self, eids: EIDs):
         lower = self._max_eid - self._size
         return (eids <= self._max_eid) & (eids > lower)
