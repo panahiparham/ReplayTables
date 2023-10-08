@@ -12,7 +12,7 @@ class RefCount:
         self._refs: Dict[XID, Set[EID]] = defaultdict(set)
         self._avail_idxs: Set[int] = set()
 
-        max_i: Any = np.iinfo(np.uint64).max
+        max_i: Any = np.iinfo(np.int64).max
         self._idxs: Dict[XID, int] = {
             max_i: -1
         }

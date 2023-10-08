@@ -67,7 +67,7 @@ class TestPER:
         d = fake_timestep(a=2, extra={'priority': 3})
         buffer.add_step(d)
 
-        eids: Any = np.array([1], dtype=np.uint64)
+        eids: Any = np.array([1], dtype=np.int64)
         batch = buffer.get(eids)
         buffer.update_priorities(batch, np.array([2]))
 

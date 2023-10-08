@@ -68,7 +68,7 @@ class PrioritySequenceSampler(IndexSampler):
         return idxs
 
     def mask_sample(self, idx: IDX):
-        idxs = np.array([idx], dtype=np.uint64)
+        idxs = np.array([idx], dtype=np.int64)
         zero = np.zeros(1)
 
         self._ps_dist.update(idxs, zero)
