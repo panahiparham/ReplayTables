@@ -13,11 +13,11 @@ class MinHeapMapper(IndexMapper):
         self._idx2eid = np.zeros(max_size, dtype=np.int64)
 
     def eid2idx(self, eid: EID) -> IDX:
-        return self._eid2idx[eid]
+        return self._eid2idx.get(eid, -1)
 
     def eids2idxs(self, eids: EIDs) -> IDXs:
-        idxs: Any = np.array([self.eid2idx(eid) for eid in eids], dtype=np.int64)
-        return idxs
+        f = np.vectorize(self.eid2idx, otypes=[np.int64])
+        return f(eids)
 
     def add_eid(self, eid: EID, /, **kwargs: Any) -> IDX:
         # check if priority is given, else assume max
@@ -54,5 +54,5 @@ class MinHeapMapper(IndexMapper):
         self._heap.update(p, idx)
 
     def has_eids(self, eids: EIDs):
-        out = [e in self._eid2idx for e in eids]
-        return np.array(out, dtype=np.bool_)
+        f = np.vectorize(lambda e: e in self._eid2idx, otypes=[np.bool_])
+        return f(eids)
