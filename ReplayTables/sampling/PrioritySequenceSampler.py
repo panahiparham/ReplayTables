@@ -46,9 +46,9 @@ class PrioritySequenceSampler(IndexSampler):
         ])
 
     def replace(self, idx: IDX, transition: LaggedTimestep, /, **kwargs: Any) -> None:
-        self._terminal.discard(idx)
+        self._terminal.discard(int(idx))
         if transition.terminal:
-            self._terminal.add(idx)
+            self._terminal.add(int(idx))
 
         priority: float = kwargs['priority']
         self._uniform.update_single(idx)
