@@ -13,7 +13,8 @@ class MinHeapMapper(IndexMapper):
         self._idx2eid = np.zeros(max_size, dtype=np.int64)
 
     def eid2idx(self, eid: EID) -> IDX:
-        return self._eid2idx.get(eid, -1)
+        default: Any = -1
+        return self._eid2idx.get(eid, default)
 
     def eids2idxs(self, eids: EIDs) -> IDXs:
         f = np.vectorize(self.eid2idx, otypes=[np.int64])
