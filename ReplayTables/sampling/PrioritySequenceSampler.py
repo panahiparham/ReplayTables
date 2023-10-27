@@ -16,14 +16,13 @@ class PrioritySequenceSampler(IndexSampler):
     def __init__(
         self,
         rng: np.random.Generator,
-        storage: Storage,
-        mapper: IndexMapper,
+        max_size: int,
         uniform_probability: float,
         trace_decay: float,
         trace_depth: int,
         combinator: str,
     ) -> None:
-        super().__init__(rng, storage, mapper)
+        super().__init__(rng, max_size)
 
         self._target.update(self._max_size)
 

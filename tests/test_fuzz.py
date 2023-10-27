@@ -35,6 +35,13 @@ class SuperSimpleBuffer:
     def get(self, idxs: IDXs) -> Batch:
         x, a, r, g, t, e, xp = zip(*[self.storage[idx] for idx in idxs])
 
+        xps = []
+        for _xp in xp:
+            if _xp is None:
+                xps.append(np.zeros(8))
+            else:
+                xps.append(_xp)
+
         eid: Any = np.array(e)
         return Batch(
             x=np.array(x),
@@ -43,7 +50,7 @@ class SuperSimpleBuffer:
             gamma=np.array(g),
             terminal=np.array(t),
             eid=eid,
-            xp=np.array(xp),
+            xp=np.array(xps),
         )
 
 class ReplayBuffer(ReplayBufferInterface):
@@ -61,12 +68,17 @@ def test_1():
 
     lag = LagBuffer(1)
 
+    last_term = False
     for step in range(1000000):
         x = rng.normal(size=8)
         a = step
         r = rng.normal()
         gamma = rng.uniform(0.1, 0.99)
-        term = rng.random() < 0.01
+        term = not last_term and rng.random() < 0.01
+        last_term = term
+
+        if term:
+            x = None
 
         lags = lag.add(Timestep(
             x=x,

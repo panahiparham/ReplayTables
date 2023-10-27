@@ -2,19 +2,16 @@ import numpy as np
 from typing import Any
 from ReplayTables.Distributions import MixinUniformDistribution, SubDistribution, PrioritizedDistribution, MixtureDistribution
 from ReplayTables.interface import IDX, IDXs, LaggedTimestep, Batch
-from ReplayTables.ingress.IndexMapper import IndexMapper
 from ReplayTables.sampling.IndexSampler import IndexSampler
-from ReplayTables.storage.Storage import Storage
 
 class PrioritySampler(IndexSampler):
     def __init__(
         self,
         rng: np.random.Generator,
-        storage: Storage,
-        mapper: IndexMapper,
+        max_size: int,
         uniform_probability: float,
     ) -> None:
-        super().__init__(rng, storage, mapper)
+        super().__init__(rng, max_size)
 
         self._target.update(self._max_size)
 

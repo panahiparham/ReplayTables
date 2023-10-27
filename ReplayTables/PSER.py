@@ -29,8 +29,7 @@ class PrioritizedSequenceReplay(ReplayBuffer):
         self._c = config or PSERConfig()
         self._sampler: PrioritySequenceSampler = PrioritySequenceSampler(
             self._rng,
-            self._storage,
-            self._idx_mapper,
+            self._storage.max_size,
             self._c.uniform_probability,
             self._c.trace_decay,
             self._c.trace_depth,

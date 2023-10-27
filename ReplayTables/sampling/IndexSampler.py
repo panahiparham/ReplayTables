@@ -6,13 +6,23 @@ from ReplayTables.Distributions import UniformDistribution
 from ReplayTables.storage.Storage import Storage
 from ReplayTables.ingress.IndexMapper import IndexMapper
 
+_tmp: Any = None
+
 class IndexSampler:
-    def __init__(self, rng: np.random.Generator, storage: Storage, mapper: IndexMapper) -> None:
+    def __init__(self, rng: np.random.Generator, max_size: int) -> None:
         self._rng = rng
+        self._storage: Storage = _tmp
+        self._mapper: IndexMapper = _tmp
+        self._max_size = max_size
+        self._target = UniformDistribution(max_size)
+
+        self._built = False
+
+    def deferred_init(self, storage: Storage, mapper: IndexMapper):
+        assert not self._built
         self._storage = storage
         self._mapper = mapper
-        self._max_size = storage.max_size
-        self._target = UniformDistribution(storage.max_size)
+        self._built = True
 
     @abstractmethod
     def replace(self, idx: IDX, transition: LaggedTimestep, /, **kwargs: Any) -> None:

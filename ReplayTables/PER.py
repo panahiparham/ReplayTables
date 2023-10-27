@@ -29,8 +29,7 @@ class PrioritizedReplay(ReplayBuffer):
         self._c = config or PERConfig()
         self._sampler: PrioritySampler = PrioritySampler(
             rng=self._rng,
-            storage=self._storage,
-            mapper=self._idx_mapper,
+            max_size=self._storage.max_size,
             uniform_probability=self._c.uniform_probability,
         )
 

@@ -1,8 +1,6 @@
 import numpy as np
 from typing import Any
 from ReplayTables.sampling.IndexSampler import IndexSampler
-from ReplayTables.storage.Storage import Storage
-from ReplayTables.ingress.IndexMapper import IndexMapper
 from ReplayTables.interface import IDX, IDXs, EIDs, LaggedTimestep, Batch
 from ReplayTables.sampling.tools import back_sequence, in_set
 
@@ -11,12 +9,11 @@ class BackwardsSampler(IndexSampler):
     def __init__(
         self,
         rng: np.random.Generator,
-        storage: Storage,
-        mapper: IndexMapper,
+        max_size: int,
         jump: int,
         reset_probability: float,
     ) -> None:
-        super().__init__(rng, storage, mapper)
+        super().__init__(rng, max_size)
         self._reset = reset_probability
         self._jump = jump
         self._batch_size: int | None = None

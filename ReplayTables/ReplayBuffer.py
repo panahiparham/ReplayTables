@@ -25,12 +25,20 @@ class ReplayBufferInterface:
         self._t = 0
         self._idx_mapper: IndexMapper = idx_mapper or CircularMapper(max_size)
         self._storage: Storage = storage or BasicStorage(max_size)
-        self._sampler: IndexSampler = sampler or UniformSampler(self._rng, self._storage, self._idx_mapper)
+        self._sampler: IndexSampler = sampler or UniformSampler(self._rng, max_size)
+
+        self._built = False
+
+    def _deferred_init(self):
+        self._sampler.deferred_init(self._storage, self._idx_mapper)
+        self._built = True
 
     def size(self) -> int:
         return max(0, len(self._storage))
 
     def add(self, transition: LaggedTimestep):
+        if not self._built: self._deferred_init()
+
         idx = self._idx_mapper.add_eid(transition.eid)
         item = self._storage.add(idx, transition)
         self._on_add(item, transition)
