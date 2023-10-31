@@ -7,6 +7,8 @@ from ReplayTables.PER import PrioritizedReplay, PERConfig
 from ReplayTables.PSER import PrioritizedSequenceReplay, PSERConfig
 
 def build_buffer(buffer_type: str, max_size: int, lag: int, rng: np.random.Generator, config: Dict[str, Any]) -> ReplayBuffer:
+    buffer_type = buffer_type.lower()
+
     if buffer_type == 'uniform' or buffer_type == 'standard':
         return ReplayBuffer(max_size, lag, rng)
 
@@ -14,11 +16,11 @@ def build_buffer(buffer_type: str, max_size: int, lag: int, rng: np.random.Gener
         c = BackwardsReplayConfig(**config)
         return BackwardsReplay(max_size, lag, rng, c)
 
-    elif buffer_type == 'PER':
+    elif buffer_type == 'per':
         c = PERConfig(**config)
         return PrioritizedReplay(max_size, lag, rng, c)
 
-    elif buffer_type == 'PSER':
+    elif buffer_type == 'pser':
         c = PSERConfig(**config)
         return PrioritizedSequenceReplay(max_size, lag, rng, c)
 
