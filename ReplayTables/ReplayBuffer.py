@@ -71,6 +71,8 @@ class ReplayBufferInterface:
         assert self._max_size <= storage.max_size
         self._storage = storage
 
+    def update_batch(self, batch: Batch, **kwargs: Any): ...
+
     @abstractmethod
     def _on_add(self, item: Item, transition: LaggedTimestep): ...
 

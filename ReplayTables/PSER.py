@@ -1,6 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any
 from ReplayTables.interface import Batch, Item, LaggedTimestep, EID
 from ReplayTables.ReplayBuffer import ReplayBuffer
 from ReplayTables.PER import PERConfig
@@ -20,7 +20,7 @@ class PrioritizedSequenceReplay(ReplayBuffer):
         max_size: int,
         lag: int,
         rng: np.random.Generator,
-        config: Optional[PSERConfig] = None,
+        config: PSERConfig | None = None,
         idx_mapper: IndexMapper | None = None,
         storage: Storage | None = None,
     ):
@@ -53,10 +53,14 @@ class PrioritizedSequenceReplay(ReplayBuffer):
 
         self._sampler.replace(item.idx, transition, priority=priority)
 
+    def update_batch(self, batch: Batch, **kwargs: Any):
+        priorities = kwargs['priorities']
+        return self.update_priorities(batch, priorities)
+
     def update_priorities(self, batch: Batch, priorities: np.ndarray):
         idxs = self._idx_mapper.eids2idxs(batch.eid)
 
-        priorities = priorities ** self._c.priority_exponent
+        priorities = np.abs(priorities) ** self._c.priority_exponent
         self._sampler.update(idxs, batch, priorities=priorities)
 
         self._max_priority = max(
