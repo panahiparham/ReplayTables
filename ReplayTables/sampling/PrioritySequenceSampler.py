@@ -31,17 +31,22 @@ class PrioritySequenceSampler(IndexSampler):
         # so add a dummy value to the set
         self._terminal.add(-1)
 
-        seq_config = PSDistributionConfig(
+        self._uniform_prob = uniform_probability
+        self._c = PSDistributionConfig(
             trace_decay=trace_decay,
             trace_depth=trace_depth,
             combinator=combinator,
         )
-        self._ps_dist = PrioritizedSequenceDistribution(seq_config, self._storage, self._mapper)
+
+    def deferred_init(self, storage: Storage, mapper: IndexMapper):
+        super().deferred_init(storage, mapper)
+
+        self._ps_dist = PrioritizedSequenceDistribution(self._c, self._storage, self._mapper)
 
         self._uniform = MixinUniformDistribution()
         self._dist = MixtureDistribution(self._max_size, dists=[
-            SubDistribution(d=self._ps_dist, p=1 - uniform_probability),
-            SubDistribution(d=self._uniform, p=uniform_probability)
+            SubDistribution(d=self._ps_dist, p=1 - self._uniform_prob),
+            SubDistribution(d=self._uniform, p=self._uniform_prob)
         ])
 
     def replace(self, idx: IDX, transition: LaggedTimestep, /, **kwargs: Any) -> None:
@@ -56,7 +61,6 @@ class PrioritySequenceSampler(IndexSampler):
     def update(self, idxs: IDXs, batch: Batch, /, **kwargs: Any) -> None:
         priorities = kwargs['priorities']
         self._uniform.update(idxs)
-
         self._ps_dist.update_seq(batch.eid, idxs, priorities, terminal=self._terminal)
 
     def isr_weights(self, idxs: IDXs):
