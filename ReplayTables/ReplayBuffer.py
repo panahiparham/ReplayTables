@@ -89,8 +89,11 @@ class ReplayBuffer(ReplayBufferInterface):
         self._lag_buffer = LagBuffer(lag)
 
     def add_step(self, transition: Timestep):
-        for d in self._lag_buffer.add(transition):
+        out = self._lag_buffer.add(transition)
+        for d in out:
             self.add(d)
+
+        return out
 
     def flush(self):
         self._lag_buffer.flush()
