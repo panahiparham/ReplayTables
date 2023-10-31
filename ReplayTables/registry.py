@@ -9,6 +9,9 @@ from ReplayTables.PSER import PrioritizedSequenceReplay, PSERConfig
 def build_buffer(buffer_type: str, max_size: int, lag: int, rng: np.random.Generator, config: Dict[str, Any]) -> ReplayBuffer:
     buffer_type = buffer_type.lower()
 
+    # TODO: remove once mypy fixes typing inference
+    c: Any = None
+
     if buffer_type == 'uniform' or buffer_type == 'standard':
         return ReplayBuffer(max_size, lag, rng)
 
