@@ -1,7 +1,7 @@
 [tool]
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "6.2.0"
+version = "6.2.1"
 tag_format = "$version"
 version_files = ["pyproject.toml"]
 
@@ -32,7 +32,7 @@ features = ["pyo3/extension-module"]
 
 [project]
 name = "ReplayTables-andnp"
-version = "6.2.0"
+version = "6.2.1"
 description = "A simple replay buffer implementation in python for sampling n-step trajectories"
 authors = [
     {name = "Andy Patterson", email = "andnpatterson@gmail.com"},
