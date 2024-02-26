@@ -34,7 +34,7 @@ jobs:
     - name: Build
       env:
         GH_TOKEN: ${{ secrets.PAT }}
-      run: pdm run ./scripts/publish.sh
+      run: ./scripts/publish.sh
 
     - name: Tag
       run: |
