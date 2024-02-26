@@ -4,6 +4,8 @@ argcomplete==3.2.2
     # via commitizen
 certifi==2024.2.2
     # via requests
+cffi==1.16.0
+    # via cryptography
 cfgv==3.4.0
     # via pre-commit
 charset-normalizer==3.3.2
@@ -15,6 +17,8 @@ colorama==0.4.6
 commitizen==3.15.0
 contourpy==1.2.0
     # via matplotlib
+cryptography==42.0.5
+    # via secretstorage
 cycler==0.12.1
     # via matplotlib
 decli==0.6.1
@@ -41,6 +45,10 @@ iniconfig==2.0.0
     # via pytest
 jaraco-classes==3.3.1
     # via keyring
+jeepney==0.8.0
+    # via
+    #   keyring
+    #   secretstorage
 jinja2==3.1.3
     # via commitizen
 keyring==24.3.0
@@ -97,6 +105,8 @@ py-cpuinfo==9.0.0
     # via pytest-benchmark
 pycodestyle==2.11.1
     # via flake8
+pycparser==2.21
+    # via cffi
 pyflakes==3.2.0
     # via flake8
 pygments==2.17.2
@@ -130,6 +140,8 @@ rich==13.7.0
     # via twine
 ruff==0.2.2
 scipy==1.12.0
+secretstorage==3.3.3
+    # via keyring
 setuptools==69.1.1
     # via nodeenv
 six==1.16.0
