@@ -17,4 +17,4 @@ cz bump --no-verify --yes --check-consistency
 pip install uv
 uv pip compile --extra=dev pyproject.toml -o requirements.txt
 git add requirements.txt
-git commit -m "ci: update requirements"
+git commit -m "ci: update requirements" || echo "No changes to commit"
