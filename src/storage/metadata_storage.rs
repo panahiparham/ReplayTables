@@ -145,7 +145,7 @@ impl MetadataStorage {
         n_xid: Option<i64>,
     ) -> (Item, Option<Item>) {
         // first check if there was already an item
-        let item = self._ids[idx as usize];
+        let item = &self._ids[idx as usize];
         let mut last_item = None;
         if item.eid != self._null_idx {
             self._ref.remove_transition(item.eid);
