@@ -13,3 +13,4 @@ env/
 dist/
 target/
 ReplayTables_andnp*
+*.so

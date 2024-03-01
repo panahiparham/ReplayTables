@@ -1,10 +1,10 @@
 import numpy as np
 from typing import Iterable
-from replay_tables_rs import SumTree as SumTreeRS
+import ReplayTables.rust as ru
 
 class SumTree:
     def __init__(self, size: int, dims: int):
-        self.st = SumTreeRS(size, dims)
+        self.st = ru.SumTree(size, dims)
         self.u = np.ones(dims, dtype=np.float64)
 
     @property
@@ -67,3 +67,12 @@ class SumTree:
         if w is None:
             return self.u
         return w
+
+    def __getstate__(self):
+        return {
+            'st': self.st.__getstate__()
+        }
+
+    def __setstate__(self, state):
+        self.st = ru.SumTree()
+        self.st.__setstate__(state['st'])

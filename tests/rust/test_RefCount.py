@@ -1,8 +1,8 @@
 from typing import Any
-from replay_tables_rs import RefCount
+import ReplayTables.rust as ru
 
 def test_add_and_load():
-    r = RefCount()
+    r = ru.RefCount()
     eid: Any = 0
     xid: Any = 0
 
@@ -20,7 +20,7 @@ def test_add_and_load():
     assert idx == 1
 
 def test_remove_transition():
-    r = RefCount()
+    r = ru.RefCount()
     eid: Any = 0
     xid1: Any = 0
     xid2: Any = 0

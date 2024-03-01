@@ -2,8 +2,7 @@ import numpy as np
 from abc import abstractmethod
 from typing import Any
 from ReplayTables.interface import Batch, LaggedTimestep, IDX, IDXs, Item
-from replay_tables_rs import MetadataStorage
-
+from ReplayTables.storage.MetadataStorage import MetadataStorage
 
 class Storage:
     def __init__(self, max_size: int):

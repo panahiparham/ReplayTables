@@ -4,7 +4,7 @@ use bincode::{deserialize, serialize};
 use serde::{Deserialize, Serialize};
 
 
-#[pyclass(module = "replay_tables_rs")]
+#[pyclass(module = "rust")]
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct Item {
     #[pyo3(get)]
@@ -36,7 +36,7 @@ impl Item {
     }
 }
 
-#[pyclass(module = "replay_tables_rs")]
+#[pyclass(module = "rust")]
 pub struct Items {
     #[pyo3(get)]
     pub idxs: Py<PyArray1<i64>>,
@@ -53,7 +53,7 @@ pub struct Items {
 }
 
 
-#[pyclass(module = "replay_tables_rs")]
+#[pyclass(module = "rust")]
 #[derive(Serialize, Deserialize)]
 pub struct MetadataStorage {
     _max_size: usize,

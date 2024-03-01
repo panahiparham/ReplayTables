@@ -5,7 +5,7 @@ use pyo3::{prelude::*, types::PyBytes};
 use bincode::{deserialize, serialize};
 use serde::{Deserialize, Serialize};
 
-#[pyclass(module = "replay_tables_rs")]
+#[pyclass(module = "rust")]
 #[derive(Serialize, Deserialize)]
 pub struct RefCount {
     _i: i64,

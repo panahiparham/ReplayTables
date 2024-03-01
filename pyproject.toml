@@ -10,6 +10,7 @@ mypy_path = "typings"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
+module-name = "ReplayTables.rust"
 
 [tool.ruff.lint]
 ignore = ['E701']
