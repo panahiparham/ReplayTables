@@ -106,17 +106,9 @@ class MixinUniformDistribution(PrioritizedDistribution):
         super().__init__(config, size)
 
     def update(self, idxs: np.ndarray, *args, **kwargs):
-        v = self.tree.get_values(self.dim, idxs)
-        if np.all(v == 1):
-            return
-
         self.tree.update(self.dim, idxs, np.ones(len(idxs)))
 
     def update_single(self, idx: int, *args, **kwargs):
-        v = self.tree.get_value(self.dim, idx)
-        if np.all(v == 1):
-            return
-
         self.tree.update_single(self.dim, idx, 1.0)
 
     def set(self, idxs: np.ndarray, vals: np.ndarray):
