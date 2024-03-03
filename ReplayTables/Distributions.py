@@ -75,7 +75,7 @@ class PrioritizedDistribution(Distribution):
         self._tree = memory
         self._dim = dim
         self._size = memory.size
-        self._weights = np.zeros(memory.size)
+        self._weights = np.zeros(memory.dims)
         self._weights[self._dim] = 1
 
     def probs(self, idxs: npt.ArrayLike):
